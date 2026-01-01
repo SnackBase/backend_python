@@ -1,0 +1,1 @@
+This Projekts is the backend API for e.g. databse interaction fot he drinbac application written with svelte ([link to GitHub repo](https://github.com/SnackBase/frontend_svelte))
