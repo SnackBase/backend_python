@@ -3,15 +3,16 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# from app.data.sql import create_db_and_tables
+from app.data.connector import create_db_and_tables
 from app.settings import get_settings
+from app.api.endpoints.product import router as product_router
 
 settings = get_settings()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # create_db_and_tables()
+    create_db_and_tables()
     yield
 
 
@@ -39,4 +40,4 @@ app.add_middleware(
 )
 
 
-# app.include_router(products_router)
+app.include_router(product_router)

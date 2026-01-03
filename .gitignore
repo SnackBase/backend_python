@@ -11,3 +11,6 @@ wheels/
 
 # General
 .env
+
+# Project specific
+/data/

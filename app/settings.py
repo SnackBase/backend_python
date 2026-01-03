@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     # Data
     data_root_dir: DirectoryPath = Path("./data")
 
+    @computed_field
+    def product_image_root_dir(self) -> Path:
+        return self.data_root_dir / "product/images"
+
     # Scopes
     admin_scope: str = "admin"
     customer_scope: str = "customer"
@@ -41,12 +45,17 @@ class Settings(BaseSettings):
         ge=1,  # valid tcp/udp range lower limit
         le=65535,  # valid tcp/udp range upper limit
     )
+    host: HttpUrl = Field(
+        description="URL of the host. Used for e.g. path resolution for static content delivery."
+    )
+    api_prefix: str = "/api/v1"
 
     @computed_field
-    def product_image_root_dir(self) -> Path:
-        return self.data_root_dir / "products/image"
+    def api_host(self) -> HttpUrl:
+        return HttpUrl(f"{self.host}/{self.api_prefix}")
 
-    model_config = SettingsConfigDict(env_file=(".env"))
+    # Model Config
+    model_config = SettingsConfigDict(env_file=(".env"), extra="allow")
 
 
 @lru_cache
