@@ -23,8 +23,8 @@ app = FastAPI(
     lifespan=lifespan,
     swagger_ui_init_oauth={  # see: https://swagger.io/docs/open-source-tools/swagger-ui/usage/oauth2/
         "appName": "DrinkBar",
-        "clientId": settings.auth_client_id,
-        "clientSecret": settings.auth_client_secret,
+        "clientId": settings.auth_client_id_frontend,
+        "clientSecret": settings.auth_client_secret_frontend,
         "usePkceWithAuthorizationCodeGrant": True,
         "scopes": "",
     },

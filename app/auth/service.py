@@ -1,0 +1,94 @@
+from enum import Enum
+from typing import Annotated, Literal
+from fastapi import Depends, HTTPException, Security, status
+from fastapi.security import (
+    OAuth2AuthorizationCodeBearer,
+    OpenIdConnect,
+    SecurityScopes,
+)
+from keycloak import KeycloakOpenID
+from jwcrypto.jwt import JWTExpired
+from sentry_sdk import Scope
+
+from app.settings import get_settings
+
+
+class SCOPES(Enum):
+    ADMIN = "admin"
+    CUSTOMER = "customer"
+    KIOSK = "kiosk"
+
+
+settings = get_settings()
+
+# This is used for fastapi docs authentification
+oauth2_scheme = OAuth2AuthorizationCodeBearer(
+    authorizationUrl=settings.authorization_url,
+    tokenUrl=settings.token_url,
+)
+
+TokenDep = Annotated[str, Depends(oauth2_scheme)]
+
+# This actually does the auth checks
+# client_secret_key is not mandatory if the client is public on keycloak
+keycloak_openid = KeycloakOpenID(
+    server_url=settings.auth_server_url.encoded_string(),
+    client_id=settings.auth_client_id,
+    client_secret_key=settings.auth_client_secret,
+    realm_name=settings.auth_realm,
+    verify=True,
+)
+
+
+async def authorize(
+    token: TokenDep,
+    security_scopes: SecurityScopes,
+    mode: Literal["all", "any"] = "all",
+) -> None:
+    try:
+        decoded_token = await keycloak_openid.a_decode_token(token=token)
+    except JWTExpired as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    scopes = security_scopes.scopes
+    if len(scopes) < 1:
+        return
+    token_scopes = decoded_token.get("scope").split(" ")
+    contained_scopes = [scope in token_scopes for scope in scopes]
+    condition = all(contained_scopes) if mode == "all" else any(contained_scopes)
+    if not condition:
+        missing_scopes = [s for s, c in zip(scopes, contained_scopes) if not c]
+        msg = (
+            ("Scope: " if len(missing_scopes) == 1 else "Scopes: ")
+            + str(missing_scopes)
+            + (" is " if len(missing_scopes) == 1 else " are ")
+            + "missing"
+        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=msg)
+
+
+async def authorize_any(token: TokenDep, security_scopes: SecurityScopes) -> None:
+    await authorize(token=token, security_scopes=security_scopes, mode="any")
+
+
+async def authorize_all(token: TokenDep, security_scopes: SecurityScopes) -> None:
+    await authorize(token=token, security_scopes=security_scopes, mode="all")
+
+
+AuthorizedDep = Annotated[
+    None, Security(authorize_any, scopes=[])
+]  # for all authenticated users, ignoring scopes
+AuthorizedAnyDep = Annotated[
+    None, Security(authorize_any, scopes=[s.value for s in SCOPES])
+]  # for all users having one of the available scopes
+AuthorizedConsumerDep = Annotated[
+    None, Security(authorize_any, scopes=[SCOPES.CUSTOMER.value, SCOPES.KIOSK.value])
+]  # for all user except the admin
+AuthorizedAdminDep = Annotated[
+    None, Security(authorize_all, scopes=[SCOPES.ADMIN.value])
+]  # only admin
+AuthorizedKioskDep = Annotated[
+    None, Security(authorize_all, scopes=[SCOPES.KIOSK.value])
+]  # only kiosk
+AuthorizedCustomerDep = Annotated[
+    None, Security(authorize_all, scopes=[SCOPES.CUSTOMER.value])
+]  # only customer

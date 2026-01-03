@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import Form, HTTPException, Path, Response, status
+from fastapi import Form, HTTPException, Path, status
 from fastapi.responses import FileResponse
 from fastapi.routing import APIRouter
 
@@ -17,6 +17,7 @@ from app.constants.product import (
     ENDPOINT_PREFIX,
     ALLOWED_MIME_TYPES,
 )
+from app.auth.service import AuthorizedAnyDep, AuthorizedDep, AuthorizedAdminDep
 
 router = APIRouter(prefix=ENDPOINT_PREFIX, tags=["Product"])
 
@@ -35,6 +36,8 @@ async def create_product_endpoint(
     product: Annotated[ProductCreate, Form(media_type="multipart/form-data")],
     session: SessionDep,
     settings: SettingsDep,
+    *,
+    _: AuthorizedAdminDep,
 ) -> ProductPublic:
     """Create a new product with image upload."""
 
@@ -49,15 +52,15 @@ async def create_product_endpoint(
 
 
 @router.get("")
-async def get_products_endpoint(session: SessionDep) -> list[ProductPublic]:
+async def get_products_endpoint(
+    session: SessionDep, _: AuthorizedAnyDep
+) -> list[ProductPublic]:
     return await get_products(session=session)
 
 
 @router.get("/{id}")
 async def get_product_by_id_endpoint(
-    id: IDType,
-    *,
-    session: SessionDep,
+    id: IDType, *, session: SessionDep, _: AuthorizedAnyDep
 ):
     product = await get_public_product_by_id(id=id, session=session)
     if product is None:
@@ -67,9 +70,7 @@ async def get_product_by_id_endpoint(
 
 @router.get("/{id}/image")
 async def get_product_image_by_id_endpoint(
-    id: IDType,
-    *,
-    session: SessionDep,
+    id: IDType, *, session: SessionDep, _: AuthorizedAnyDep
 ) -> FileResponse:
     product = await get_product_by_id(id=id, session=session)
     if product is None:
@@ -87,6 +88,7 @@ async def delete_product_by_id_endpoint(
     id: IDType,
     *,
     session: SessionDep,
+    _: AuthorizedAdminDep,
 ) -> None:
     product = await delete_product_by_id(id=id, session=session)
     if product is None:

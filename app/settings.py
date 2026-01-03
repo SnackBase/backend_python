@@ -7,21 +7,47 @@ from pydantic import DirectoryPath, Field, HttpUrl, PostgresDsn, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+OIDC_ENDPOINT = "/protocol/openid-connect"
+
+
 class Settings(BaseSettings):
     # Auth
     auth_client_secret: str = Field(
-        description="Client Secret for the OIDC auth server (keycloak)"
+        description="Client secret for the OIDC auth server (keycloak)"
     )
     auth_client_id: str = Field(
         description="Client ID for the OIDC auth server (keycloak)"
     )
-    auth_url: HttpUrl = Field(
+    auth_client_secret_frontend: str = Field(
+        description="Frontend client secret for the OIDC auth server (keycloak)"
+    )
+    auth_client_id_frontend: str = Field(
+        description="Frontend client ID for the OIDC auth server (keycloak)"
+    )
+    auth_server_url: HttpUrl = Field(
         description="Realm specific URL of the OIDC auth server (keycloak)"
     )
+    auth_realm: str = Field(description="Name of the realm to use")
 
     @computed_field
-    def auth_url_str(self) -> str:
-        return self.oidc_url.encoded_string()
+    @property
+    def authorization_url(self) -> str:
+        return (
+            self.auth_server_url.encoded_string()
+            + f"realms/{self.auth_realm}"
+            + OIDC_ENDPOINT
+            + "/auth"
+        )
+
+    @computed_field
+    @property
+    def token_url(self) -> str:
+        return (
+            self.auth_server_url.encoded_string()
+            + f"realms/{self.auth_realm}"
+            + OIDC_ENDPOINT
+            + "/token"
+        )
 
     # DB
     db_dsn: PostgresDsn = Field(description="DSN fot the database conenction")
@@ -30,6 +56,7 @@ class Settings(BaseSettings):
     data_root_dir: DirectoryPath = Path("./data")
 
     @computed_field
+    @property
     def product_image_root_dir(self) -> Path:
         return self.data_root_dir / "product/images"
 
@@ -51,6 +78,7 @@ class Settings(BaseSettings):
     api_prefix: str = "/api/v1"
 
     @computed_field
+    @property
     def api_host(self) -> HttpUrl:
         return HttpUrl(f"{self.host}/{self.api_prefix}")
 
