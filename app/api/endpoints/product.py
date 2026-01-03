@@ -15,7 +15,6 @@ from app.data.connector import SessionDep
 from app.settings import SettingsDep
 from app.constants.product import (
     ENDPOINT_PREFIX,
-    IMAGE_SIZE,
     ALLOWED_MIME_TYPES,
 )
 
@@ -33,28 +32,18 @@ def _product_not_found_error(id: int) -> None:
 
 @router.post("")
 async def create_product_endpoint(
-    product: Annotated[ProductCreate, Form()],
+    product: Annotated[ProductCreate, Form(media_type="multipart/form-data")],
     session: SessionDep,
     settings: SettingsDep,
 ) -> ProductPublic:
     """Create a new product with image upload."""
 
-    # Validate image MIME type
+    # Validate image MIME type (fast check, no file read)
     if product.image.content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid file type: {product.image.content_type}. Allowed types: {', '.join(ALLOWED_MIME_TYPES)}",
         )
-
-    # Validate image size
-    contents = await product.image.read()
-    if len(contents) > IMAGE_SIZE:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File too large. Maximum size: {IMAGE_SIZE / (1024 * 1024):.1f} MB",
-        )
-    # Reset file pointer after reading
-    await product.image.seek(0)
 
     return await create_product(product=product, session=session, settings=settings)
 
