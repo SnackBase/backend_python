@@ -11,3 +11,21 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./container/postgres/init:/docker-entrypoint-initdb.d:z
+  keycloak:
+    build:
+      context: ./container/keycloak/
+      dockerfile: Containerfile
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: ${KC_DB_URL}
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
+    ports:
+      - "${KC_HOST_PORT}:8443"
+    command: start --optimized
+    depends_on:
+      db:
+        condition: service_started
