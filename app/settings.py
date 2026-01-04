@@ -1,6 +1,5 @@
 from functools import lru_cache
 from pathlib import Path
-from pydoc import describe
 from typing import Annotated
 
 from fastapi import Depends

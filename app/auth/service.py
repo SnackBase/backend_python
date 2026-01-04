@@ -3,7 +3,6 @@ from typing import Annotated, Literal
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import (
     OAuth2AuthorizationCodeBearer,
-    OpenIdConnect,
     SecurityScopes,
 )
 from keycloak import KeycloakAdmin, KeycloakOpenID
@@ -15,7 +14,7 @@ from app.settings import get_settings
 
 
 class SCOPES(Enum):
-    ADMIN = "admin"
+    ADMIN = "appadmin"
     CUSTOMER = "customer"
     KIOSK = "kiosk"
 
@@ -57,11 +56,46 @@ async def authorize(
     security_scopes: SecurityScopes,
     mode: Literal["all", "any"] = "all",
 ) -> User:
+    """
+    Authorize a user based on their JWT token and required scopes.
+
+    Decodes and validates the JWT token from Keycloak, then checks if the user
+    has the required scopes. The authorization mode determines whether the user
+    needs all scopes or any of the scopes.
+
+    Parameters
+    ----------
+    token : TokenDep
+        The JWT access token from the OAuth2 authorization flow.
+    security_scopes : SecurityScopes
+        FastAPI SecurityScopes object containing the required scopes for authorization.
+    mode : Literal["all", "any"], default="all"
+        Authorization mode:
+        - "all": User must have all required scopes
+        - "any": User must have at least one of the required scopes
+
+    Returns
+    -------
+    User
+        The authenticated user object with decoded token information.
+
+    Raises
+    ------
+    HTTPException
+        - 401 UNAUTHORIZED: If token is expired or user lacks required scopes
+        - 503 SERVICE_UNAVAILABLE: If connection to auth server fails
+
+    Examples
+    --------
+    >>> user = await authorize(token, SecurityScopes(scopes=["admin"]), mode="all")
+    >>> print(user.scopes)
+    ['admin', 'customer']
+    """
     try:
         decoded_token = await keycloak_openid.a_decode_token(token=token)
     except JWTExpired as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
-    except KeycloakConnectionError | KeycloakGetError as e:
+    except (KeycloakConnectionError, KeycloakGetError) as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Connection error while connecting to auth server. {e}",
@@ -85,10 +119,78 @@ async def authorize(
 
 
 async def authorize_any(token: TokenDep, security_scopes: SecurityScopes) -> User:
+    """
+    Authorize a user if they have ANY of the required scopes.
+
+    Wrapper around `authorize()` with mode="any". The user is authorized if they
+    possess at least one of the required scopes.
+
+    Parameters
+    ----------
+    token : TokenDep
+        The JWT access token from the OAuth2 authorization flow.
+    security_scopes : SecurityScopes
+        FastAPI SecurityScopes object containing the required scopes.
+
+    Returns
+    -------
+    User
+        The authenticated user object with decoded token information.
+
+    Raises
+    ------
+    HTTPException
+        - 401 UNAUTHORIZED: If token is expired or user has none of the required scopes
+        - 503 SERVICE_UNAVAILABLE: If connection to auth server fails
+
+    See Also
+    --------
+    authorize : Base authorization function
+    authorize_all : Authorize requiring all scopes
+
+    Examples
+    --------
+    >>> # User with scope "customer" will be authorized
+    >>> user = await authorize_any(token, SecurityScopes(scopes=["admin", "customer"]))
+    """
     return await authorize(token=token, security_scopes=security_scopes, mode="any")
 
 
 async def authorize_all(token: TokenDep, security_scopes: SecurityScopes) -> User:
+    """
+    Authorize a user if they have ALL of the required scopes.
+
+    Wrapper around `authorize()` with mode="all". The user is authorized only if they
+    possess all of the required scopes.
+
+    Parameters
+    ----------
+    token : TokenDep
+        The JWT access token from the OAuth2 authorization flow.
+    security_scopes : SecurityScopes
+        FastAPI SecurityScopes object containing the required scopes.
+
+    Returns
+    -------
+    User
+        The authenticated user object with decoded token information.
+
+    Raises
+    ------
+    HTTPException
+        - 401 UNAUTHORIZED: If token is expired or user lacks any of the required scopes
+        - 503 SERVICE_UNAVAILABLE: If connection to auth server fails
+
+    See Also
+    --------
+    authorize : Base authorization function
+    authorize_any : Authorize requiring any scope
+
+    Examples
+    --------
+    >>> # User must have both "admin" and "customer" scopes
+    >>> user = await authorize_all(token, SecurityScopes(scopes=["admin", "customer"]))
+    """
     return await authorize(token=token, security_scopes=security_scopes, mode="all")
 
 

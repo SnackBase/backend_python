@@ -12,15 +12,33 @@ from app.constants.product import IMAGE_SIZE, MAX_SIZE
 
 async def save_image(image: UploadFile, path: Path, *, quality: int = 85) -> None:
     """
-    Convert an uploaded image (jpeg/png/etc.) to WEBP and save it asynchronously.
+    Convert an uploaded image to WebP format and save asynchronously.
 
-    Args:
-        image: The uploaded file (may already be read)
-        path: Destination path for the WebP file
-        quality: WebP quality (1-100, default 85 is a good balance)
+    Reads the uploaded file, validates size, converts to WebP (with automatic
+    resizing if needed), and saves to disk using async I/O. CPU-intensive image
+    processing is offloaded to a thread pool.
 
-    Raises:
-        HTTPException: If file is too large or cannot be processed
+    Parameters
+    ----------
+    image : UploadFile
+        The uploaded image file (may already be read by validation)
+    path : Path
+        Destination filesystem path for the WebP file
+    quality : int, default=85
+        WebP compression quality (1-100, higher = better quality/larger file)
+
+    Raises
+    ------
+    HTTPException
+        - 400 BAD_REQUEST: If file exceeds maximum size (5 MB)
+        - 500 INTERNAL_SERVER_ERROR: If image processing or file write fails
+
+    Notes
+    -----
+    - Automatically resizes images larger than 800x800 pixels
+    - Preserves transparency for RGBA/PNG images
+    - Uses method=4 for balanced compression speed
+    - Ensures parent directories exist before writing
     """
 
     # Read uploaded file asynchronously (handles both read and unread files)
@@ -73,6 +91,31 @@ async def save_image(image: UploadFile, path: Path, *, quality: int = 85) -> Non
 
 
 async def save_product(product: Product, session: Session) -> Product:
+    """
+    Persist a new product to the database.
+
+    Adds the product to the session, commits the transaction, and refreshes
+    to get the auto-generated ID and any default values.
+
+    Parameters
+    ----------
+    product : Product
+        The product instance to save (without ID)
+    session : Session
+        Active SQLModel database session
+
+    Returns
+    -------
+    Product
+        The saved product with generated ID and refreshed fields
+
+    Examples
+    --------
+    >>> product = Product(name="Cola", price=2.5, type=ProductTypes.DRINK, image_id="abc123")
+    >>> saved = await save_product(product, session)
+    >>> saved.id
+    1
+    """
     session.add(product)
     session.commit()
     session.refresh(product)
@@ -82,6 +125,32 @@ async def save_product(product: Product, session: Session) -> Product:
 async def get_products_data(
     limit: int | None = None, *, session: Session
 ) -> Sequence[Product]:
+    """
+    Retrieve products from the database with optional limit.
+
+    Parameters
+    ----------
+    limit : int | None, default=None
+        Maximum number of products to return. If None, returns all products.
+    session : Session
+        Active SQLModel database session
+
+    Returns
+    -------
+    Sequence[Product]
+        List of product instances from the database
+
+    Examples
+    --------
+    >>> # Get all products
+    >>> products = await get_products_data(session=session)
+    >>> len(products)
+    50
+    >>> # Get first 10 products
+    >>> products = await get_products_data(limit=10, session=session)
+    >>> len(products)
+    10
+    """
     statement = select(Product)
     if limit is not None:
         statement = statement.limit(limit=limit)
@@ -89,6 +158,27 @@ async def get_products_data(
 
 
 async def get_product_data_by_id(id: int, session: Session) -> Product:
+    """
+    Retrieve a single product by its ID.
+
+    Parameters
+    ----------
+    id : int
+        The unique product identifier
+    session : Session
+        Active SQLModel database session
+
+    Returns
+    -------
+    Product | None
+        The product instance if found, None otherwise
+
+    Examples
+    --------
+    >>> product = await get_product_data_by_id(id=1, session=session)
+    >>> product.name if product else "Not found"
+    'Cola 0.33L'
+    """
     return session.get(Product, id)
 
 
@@ -96,6 +186,36 @@ async def delete_product_data_by_id(
     product: Product,
     session: Session,
 ) -> Product | None:
+    """
+    Delete a product and its associated image file from the system.
+
+    Removes both the database record and the physical image file from disk.
+    The image file deletion is graceful (won't raise error if file doesn't exist).
+
+    Parameters
+    ----------
+    product : Product
+        The product instance to delete
+    session : Session
+        Active SQLModel database session
+
+    Returns
+    -------
+    Product | None
+        The deleted product instance (for reference/logging)
+
+    Notes
+    -----
+    Deletes the image file first (if it exists), then removes the database record.
+    Uses missing_ok=True to avoid errors if the image file was already deleted.
+
+    Examples
+    --------
+    >>> product = await get_product_data_by_id(id=1, session=session)
+    >>> deleted = await delete_product_data_by_id(product, session)
+    >>> deleted.name
+    'Cola 0.33L'
+    """
     product.image_path.unlink(missing_ok=True)
     session.delete(product)
     session.commit()
