@@ -26,6 +26,7 @@ class ProductTypes(Enum):
     FOOD : str
         Food products (e.g., sandwiches, meals)
     """
+
     DRINK = "drink"
     SNACK = "snack"
     FOOD = "food"
@@ -46,6 +47,7 @@ class ProductBase(SQLModel):
     currency : Currency, default="EUR"
         ISO 4217 currency code for the price
     """
+
     name: str
     price: float = Field(ge=0)
     type: ProductTypes
@@ -68,6 +70,7 @@ class ProductCreate(ProductBase):
     -----
     Inherits name, price, type, and currency from ProductBase.
     """
+
     image: UploadFile
 
 
@@ -90,11 +93,12 @@ class ProductPublic(ProductBase):
     The image URL is constructed as: {host}{api_prefix}/products/{id}/image
     Inherits name, price, type, and currency from ProductBase.
     """
+
     id: int
 
     @computed_field
     @property
-    def image(self) -> HttpUrl:
+    def image(self) -> str:
         """
         Construct the full HTTP URL for fetching the product image.
 
@@ -109,12 +113,7 @@ class ProductPublic(ProductBase):
         >>> str(product.image)
         'http://localhost:8000/api/v1/products/1/image'
         """
-        return HttpUrl(
-            urljoin(
-                str(settings.host),
-                settings.api_prefix + ENDPOINT_PREFIX + f"/{self.id}" + IMAGE_ROUTE,
-            )
-        )
+        return f"{ENDPOINT_PREFIX}/{self.id}/{IMAGE_ROUTE}"
 
 
 class Product(ProductBase, table=True):
@@ -138,6 +137,7 @@ class Product(ProductBase, table=True):
     Images are stored as: {product_image_root_dir}/{image_id}.webp
     Inherits name, price, type, and currency from ProductBase.
     """
+
     id: int | None = Field(primary_key=True)
     image_id: str
 

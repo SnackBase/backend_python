@@ -1,6 +1,6 @@
 IMAGE_SIZE = 5 * 1024**2
 ENDPOINT_PREFIX = "/products"
-IMAGE_ROUTE = "/image"
+IMAGE_ROUTE = "image"
 
 # Allowed image MIME types for upload validation
 ALLOWED_MIME_TYPES = {
