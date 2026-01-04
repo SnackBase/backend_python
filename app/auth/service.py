@@ -7,8 +7,8 @@ from fastapi.security import (
     SecurityScopes,
 )
 from keycloak import KeycloakAdmin, KeycloakOpenID
+from keycloak.exceptions import KeycloakConnectionError, KeycloakGetError
 from jwcrypto.jwt import JWTExpired
-from sentry_sdk import Scope
 
 from app.data.models.user import User
 from app.settings import get_settings
@@ -37,7 +37,7 @@ keycloak_openid = KeycloakOpenID(
     client_id=settings.auth_client_id,
     client_secret_key=settings.auth_client_secret,
     realm_name=settings.auth_realm,
-    verify=True,
+    verify=settings.auth_ssl_verify,
 )
 
 # this is the admin interface
@@ -48,7 +48,7 @@ keycloak_admin = KeycloakAdmin(
     password=settings.auth_admin_password,
     realm_name=settings.auth_realm,  # The realm to manage (DrinkBar)
     user_realm_name="master",  # The realm where admin user exists
-    verify=True
+    verify=settings.auth_ssl_verify,
 )
 
 
@@ -61,6 +61,11 @@ async def authorize(
         decoded_token = await keycloak_openid.a_decode_token(token=token)
     except JWTExpired as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except KeycloakConnectionError | KeycloakGetError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Connection error while connecting to auth server. {e}",
+        )
     user = User(**decoded_token)
     scopes = security_scopes.scopes
     if len(scopes) < 1:

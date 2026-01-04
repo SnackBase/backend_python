@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+from pydoc import describe
 from typing import Annotated
 
 from fastapi import Depends
@@ -33,6 +34,10 @@ class Settings(BaseSettings):
         default="admin",
     )
     auth_admin_password: str = Field(description="Password for the admin account")
+    auth_ssl_verify: bool = Field(
+        description="True to verify the TLS certificate for the SSL connection to the auth server",
+        default=True,
+    )
 
     @computed_field
     @property
