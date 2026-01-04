@@ -6,10 +6,11 @@ from fastapi.security import (
     OpenIdConnect,
     SecurityScopes,
 )
-from keycloak import KeycloakOpenID
+from keycloak import KeycloakAdmin, KeycloakOpenID
 from jwcrypto.jwt import JWTExpired
 from sentry_sdk import Scope
 
+from app.data.models.user import User
 from app.settings import get_settings
 
 
@@ -39,21 +40,32 @@ keycloak_openid = KeycloakOpenID(
     verify=True,
 )
 
+# this is the admin interface
+# The admin user authenticates in the 'master' realm but manages the DrinkBar realm
+keycloak_admin = KeycloakAdmin(
+    server_url=str(settings.auth_server_url),
+    username=settings.auth_admin_username,
+    password=settings.auth_admin_password,
+    realm_name=settings.auth_realm,  # The realm to manage (DrinkBar)
+    user_realm_name="master",  # The realm where admin user exists
+    verify=True
+)
+
 
 async def authorize(
     token: TokenDep,
     security_scopes: SecurityScopes,
     mode: Literal["all", "any"] = "all",
-) -> None:
+) -> User:
     try:
         decoded_token = await keycloak_openid.a_decode_token(token=token)
     except JWTExpired as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    user = User(**decoded_token)
     scopes = security_scopes.scopes
     if len(scopes) < 1:
-        return
-    token_scopes = decoded_token.get("scope").split(" ")
-    contained_scopes = [scope in token_scopes for scope in scopes]
+        return user
+    contained_scopes = [scope in user.scopes for scope in scopes]
     condition = all(contained_scopes) if mode == "all" else any(contained_scopes)
     if not condition:
         missing_scopes = [s for s, c in zip(scopes, contained_scopes) if not c]
@@ -64,31 +76,32 @@ async def authorize(
             + "missing"
         )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=msg)
+    return user
 
 
-async def authorize_any(token: TokenDep, security_scopes: SecurityScopes) -> None:
-    await authorize(token=token, security_scopes=security_scopes, mode="any")
+async def authorize_any(token: TokenDep, security_scopes: SecurityScopes) -> User:
+    return await authorize(token=token, security_scopes=security_scopes, mode="any")
 
 
-async def authorize_all(token: TokenDep, security_scopes: SecurityScopes) -> None:
-    await authorize(token=token, security_scopes=security_scopes, mode="all")
+async def authorize_all(token: TokenDep, security_scopes: SecurityScopes) -> User:
+    return await authorize(token=token, security_scopes=security_scopes, mode="all")
 
 
 AuthorizedDep = Annotated[
-    None, Security(authorize_any, scopes=[])
+    User, Security(authorize_any, scopes=[])
 ]  # for all authenticated users, ignoring scopes
 AuthorizedAnyDep = Annotated[
-    None, Security(authorize_any, scopes=[s.value for s in SCOPES])
+    User, Security(authorize_any, scopes=[s.value for s in SCOPES])
 ]  # for all users having one of the available scopes
 AuthorizedConsumerDep = Annotated[
-    None, Security(authorize_any, scopes=[SCOPES.CUSTOMER.value, SCOPES.KIOSK.value])
+    User, Security(authorize_any, scopes=[SCOPES.CUSTOMER.value, SCOPES.KIOSK.value])
 ]  # for all user except the admin
 AuthorizedAdminDep = Annotated[
-    None, Security(authorize_all, scopes=[SCOPES.ADMIN.value])
+    User, Security(authorize_all, scopes=[SCOPES.ADMIN.value])
 ]  # only admin
 AuthorizedKioskDep = Annotated[
-    None, Security(authorize_all, scopes=[SCOPES.KIOSK.value])
+    User, Security(authorize_all, scopes=[SCOPES.KIOSK.value])
 ]  # only kiosk
 AuthorizedCustomerDep = Annotated[
-    None, Security(authorize_all, scopes=[SCOPES.CUSTOMER.value])
+    User, Security(authorize_all, scopes=[SCOPES.CUSTOMER.value])
 ]  # only customer

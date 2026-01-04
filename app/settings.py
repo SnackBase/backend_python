@@ -28,6 +28,11 @@ class Settings(BaseSettings):
         description="Realm specific URL of the OIDC auth server (keycloak)"
     )
     auth_realm: str = Field(description="Name of the realm to use")
+    auth_admin_username: str = Field(
+        description="Username of the admin account for the (master) realm",
+        default="admin",
+    )
+    auth_admin_password: str = Field(description="Password for the admin account")
 
     @computed_field
     @property
@@ -59,11 +64,6 @@ class Settings(BaseSettings):
     @property
     def product_image_root_dir(self) -> Path:
         return self.data_root_dir / "product/images"
-
-    # Scopes
-    admin_scope: str = "admin"
-    customer_scope: str = "customer"
-    kiosk_scope: str = "kiosk"
 
     # Network
     port: int = Field(

@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.data.connector import create_db_and_tables
 from app.settings import get_settings
 from app.api.endpoints.product import router as product_router
+from app.api.endpoints.user import router as user_router
 
 settings = get_settings()
 
@@ -41,3 +42,4 @@ app.add_middleware(
 
 
 app.include_router(product_router)
+app.include_router(user_router)
