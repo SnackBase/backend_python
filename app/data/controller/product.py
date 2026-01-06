@@ -55,6 +55,7 @@ async def create_product(
         type=product.type,
         currency=product.currency,
         image_id=image_id,
+        age_restrict=product.age_restrict,
     )
     await save_image(image=product.image, path=db_product.image_path)
     db_product = await save_product(product=db_product, session=session)

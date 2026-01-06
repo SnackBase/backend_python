@@ -1,9 +1,9 @@
 from pathlib import Path
 from sqlmodel import SQLModel, Field
-from pydantic import computed_field, HttpUrl
+from pydantic import ConfigDict, computed_field
+from pydantic.alias_generators import to_camel
 from pydantic_extra_types.currency_code import Currency
 from enum import Enum
-from urllib.parse import urljoin
 from fastapi import UploadFile
 
 from app.constants.product import IMAGE_ROUTE, ENDPOINT_PREFIX
@@ -52,6 +52,14 @@ class ProductBase(SQLModel):
     price: float = Field(ge=0)
     type: ProductTypes
     currency: Currency = Field(default=Currency("EUR"))
+    age_restrict: bool
+
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+        from_attributes=True,
+        serialize_by_alias=True,
+    )
 
 
 class ProductCreate(ProductBase):
@@ -71,6 +79,7 @@ class ProductCreate(ProductBase):
     Inherits name, price, type, and currency from ProductBase.
     """
 
+    age_restrict: bool | None = False
     image: UploadFile
 
 
