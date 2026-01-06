@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from app.auth.service import AuthorizedDep, AuthorizedKioskDep
 from app.data.controller.user import get_users
-from app.data.models.user import UserFull, UserPublic
+from app.auth.models.user import UserFull, UserPublic
 
 
 router = APIRouter(prefix="/users", tags=["Users"])

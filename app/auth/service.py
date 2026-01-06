@@ -9,7 +9,7 @@ from keycloak import KeycloakAdmin, KeycloakOpenID
 from keycloak.exceptions import KeycloakConnectionError, KeycloakGetError
 from jwcrypto.jwt import JWTExpired
 
-from app.data.models.user import UserFull
+from app.auth.models.user import UserFull
 from app.settings import get_settings
 
 

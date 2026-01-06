@@ -1,6 +1,6 @@
 from app.auth.service import keycloak_admin
 
-from app.data.models.user import UserFull
+from app.auth.models.user import UserFull
 
 
 async def get_users_data() -> list[UserFull]:

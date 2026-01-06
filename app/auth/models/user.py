@@ -1,6 +1,5 @@
 from pydantic import EmailStr, computed_field, ConfigDict
 from sqlmodel import SQLModel, Field
-# from pydantic.alias_generators import to_camel
 
 
 class UserPublic(SQLModel):

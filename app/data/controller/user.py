@@ -1,5 +1,5 @@
 from app.data.access.user import get_users_data
-from app.data.models.user import UserPublic
+from app.auth.models.user import UserPublic
 
 
 async def get_users() -> UserPublic:
