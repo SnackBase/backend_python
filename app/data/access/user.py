@@ -15,5 +15,4 @@ async def get_users_data() -> list[User]:
     # Get all members of the group
     users = keycloak_admin.get_group_members(group_id=group_id)
 
-    print(users)
     return [User(**u) for u in users]
