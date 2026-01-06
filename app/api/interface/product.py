@@ -3,7 +3,7 @@ from fastapi import Query
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
-from app.data.models.product import ProductTypes
+from app.data.enums.product import ProductTypes
 
 
 class ProductFilterModel(BaseModel):

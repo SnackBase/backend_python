@@ -1,21 +1,20 @@
+from datetime import UTC, datetime
 from uuid import uuid4
 from sqlmodel import Session
 
 from app.api.interface.product import ProductFilterModel
-from app.data.models.product import Product, ProductCreate, ProductPublic, ProductTypes
+from app.data.models.product import Product, ProductCreate, ProductPublic
 from app.data.access.product import (
     delete_product_data_by_id,
     get_product_data_by_id,
     get_products_data,
     save_image,
     save_product,
+    save_products,
 )
-from app.settings import Settings
 
 
-async def create_product(
-    product: ProductCreate, session: Session, settings: Settings
-) -> ProductPublic:
+async def create_product(product: ProductCreate, session: Session) -> ProductPublic:
     """
     Create a new product with image upload.
 
@@ -28,8 +27,6 @@ async def create_product(
         Product data including name, price, type, currency, and image file
     session : Session
         Active database session for persistence
-    settings : Settings
-        Application settings (unused, kept for future extensibility)
 
     Returns
     -------
@@ -88,7 +85,9 @@ def get_products(
     return [ProductPublic.model_validate(p) for p in products]
 
 
-def get_product_by_id(id: int, session: Session) -> Product | None:
+def get_product_by_id(
+    id: int, include_deleted: bool = False, *, session: Session
+) -> Product | None:
     """
     Retrieve a product database model by ID.
 
@@ -104,7 +103,9 @@ def get_product_by_id(id: int, session: Session) -> Product | None:
     Product | None
         Product database model or None if not found
     """
-    return get_product_data_by_id(id=id, session=session)
+    return get_product_data_by_id(
+        id=id, include_deleted=include_deleted, session=session
+    )
 
 
 def get_public_product_by_id(id: int, session: Session) -> ProductPublic | None:
@@ -148,5 +149,33 @@ def delete_product_by_id(id: int, session: Session) -> ProductPublic | None:
     product = get_product_data_by_id(id=id, session=session)
     if product is None:
         return None
+    # ? TODO: might change this to show a "HTTP 304 not modified"
     product = delete_product_data_by_id(product=product, session=session)
+    return ProductPublic.model_validate(product)
+
+
+def update_product_price(
+    price: float, id: int, session: Session
+) -> ProductPublic | None:
+    product_old = get_product_data_by_id(id=id, session=session)
+    if product_old is None:
+        return None
+    if price == product_old.price:
+        # ? TODO: might change this to show a "HTTP 304 not modified"
+        return ProductPublic.model_validate(product_old)
+    product_new = Product(
+        id=None,
+        name=product_old.name,
+        price=price,
+        type=product_old.type,
+        currency=product_old.currency,
+        image_id=product_old.image_id,
+        age_restrict=product_old.age_restrict,
+        persistent_id=product_old.persistent_id,
+    )
+    now = datetime.now(tz=UTC)
+    if product_old.deleted_at is None:
+        product_old.deleted_at = now
+    product_new.created_at = now
+    product = save_products(products=[product_old, product_new], session=session)[-1]
     return ProductPublic.model_validate(product)

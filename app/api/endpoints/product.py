@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import Form, HTTPException, Path, status
+from fastapi import Form, HTTPException, Path, Query, status
 from fastapi.responses import FileResponse
 from fastapi.routing import APIRouter
 
@@ -11,6 +11,7 @@ from app.data.controller.product import (
     get_product_by_id,
     get_products,
     get_public_product_by_id,
+    update_product_price,
 )
 from app.data.connector import SessionDep
 from app.settings import SettingsDep
@@ -96,7 +97,7 @@ async def create_product_endpoint(
             detail=f"Invalid file type: {product.image.content_type}. Allowed types: {', '.join(ALLOWED_MIME_TYPES)}",
         )
 
-    return await create_product(product=product, session=session, settings=settings)
+    return await create_product(product=product, session=session)
 
 
 @router.get("")
@@ -194,7 +195,7 @@ async def get_product_image_by_id_endpoint(
         - 403 FORBIDDEN: User has no valid scopes
         - 404 NOT_FOUND: Product doesn't exist or image file not found
     """
-    product = get_product_by_id(id=id, session=session)
+    product = get_product_by_id(id=id, include_deleted=True, session=session)
     if product is None:
         _product_not_found_error(id=id)
     if not product.image_path.exists():
@@ -243,3 +244,17 @@ async def delete_product_by_id_endpoint(
     if product is None:
         _product_not_found_error(id=id)
     return None
+
+
+@router.patch("/{id}")
+async def update_product_price_by_id_endpoint(
+    id: IDType,
+    price: Annotated[float, Query(ge=0)],
+    *,
+    session: SessionDep,
+    _: AuthorizedAdminDep,
+) -> None:
+    product = update_product_price(price=price, id=id, session=session)
+    if product is None:
+        _product_not_found_error(id=id)
+    return product

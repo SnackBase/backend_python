@@ -1,35 +1,20 @@
+from datetime import datetime, UTC
+from decimal import Decimal
 from pathlib import Path
+import uuid
 from sqlmodel import SQLModel, Field
-from pydantic import ConfigDict, computed_field, BaseModel
+from pydantic import ConfigDict, computed_field
 from pydantic.alias_generators import to_camel
 from pydantic_extra_types.currency_code import Currency
 from enum import Enum
 from fastapi import UploadFile
 
 from app.constants.product import IMAGE_ROUTE, ENDPOINT_PREFIX
+from app.data.enums.product import ProductTypes
 from app.settings import get_settings
 
 
 settings = get_settings()
-
-
-class ProductTypes(Enum):
-    """
-    Enumeration of available product categories.
-
-    Attributes
-    ----------
-    DRINK : str
-        Beverage products (e.g., sodas, water, juices)
-    SNACK : str
-        Snack products (e.g., chips, candy, nuts)
-    FOOD : str
-        Food products (e.g., sandwiches, meals)
-    """
-
-    DRINK = "drink"
-    SNACK = "snack"
-    FOOD = "food"
 
 
 class ProductBase(SQLModel):
@@ -49,7 +34,7 @@ class ProductBase(SQLModel):
     """
 
     name: str
-    price: float = Field(ge=0)
+    price: Decimal = Field(ge=0, decimal_places=2)
     type: ProductTypes
     currency: Currency = Field(default=Currency("EUR"))
     age_restrict: bool
@@ -147,8 +132,17 @@ class Product(ProductBase, table=True):
     Inherits name, price, type, and currency from ProductBase.
     """
 
-    id: int | None = Field(primary_key=True)
+    id: int | None = Field(
+        primary_key=True,
+        description="This ID is unique over all instances of products but does not persistent changes of the product.",
+    )
+    persistent_id: uuid.UUID | None = Field(
+        default_factory=uuid.uuid4,
+        description="This ID (UUID) is persistent over changes of the product, but now unique over all instances of products.",
+    )
     image_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(tz=UTC))
+    deleted_at: datetime | None = Field(default=None)
 
     @property
     def image_path(self) -> Path:

@@ -5,9 +5,10 @@ import aiofiles
 from fastapi import UploadFile, HTTPException, status
 from PIL import Image
 from sqlmodel import Sequence, Session, select
+from datetime import datetime, UTC
 
 from app.api.interface.product import ProductFilterModel
-from app.data.models.product import Product, ProductTypes
+from app.data.models.product import Product
 from app.constants.product import IMAGE_SIZE, MAX_SIZE
 
 
@@ -123,6 +124,15 @@ def save_product(product: Product, session: Session) -> Product:
     return product
 
 
+def save_products(products: list[Product], session: Session) -> list[Product]:
+    for product in products:
+        session.add(product)
+    session.commit()
+    for product in products:
+        session.refresh(product)
+    return products
+
+
 def get_products_data(
     filter: ProductFilterModel,
     *,
@@ -154,9 +164,9 @@ def get_products_data(
     >>> len(products)
     10
     """
-    statement = select(Product)
+    statement = select(Product).where(Product.deleted_at == None)  # noqa: E711  # noqa necessary for the condition handling via sqlmodel
     if filter.age_restrict is not None and filter.age_restrict:
-        statement = statement.where(Product.age_restrict != True)  # noqa: E712  # noqa necessary for the condition ahdnling via sqlmodel
+        statement = statement.where(Product.age_restrict != True)  # noqa: E712  # noqa necessary for the condition handling via sqlmodel
     if filter.product_type is not None:
         statement = statement.where(Product.type == filter.product_type)
     if filter.offset is not None:
@@ -166,7 +176,9 @@ def get_products_data(
     return session.exec(statement=statement).all()
 
 
-def get_product_data_by_id(id: int, session: Session) -> Product:
+def get_product_data_by_id(
+    id: int, include_deleted: bool = False, *, session: Session
+) -> Product:
     """
     Retrieve a single product by its ID.
 
@@ -188,7 +200,10 @@ def get_product_data_by_id(id: int, session: Session) -> Product:
     >>> product.name if product else "Not found"
     'Cola 0.33L'
     """
-    return session.get(Product, id)
+    product = session.get(Product, id)
+    if not include_deleted and product.deleted_at is not None:
+        return None
+    return product
 
 
 def delete_product_data_by_id(
@@ -225,7 +240,13 @@ def delete_product_data_by_id(
     >>> deleted.name
     'Cola 0.33L'
     """
-    product.image_path.unlink(missing_ok=True)
-    session.delete(product)
+    if product.deleted_at is not None:
+        return product
+    product.image_path.unlink(
+        missing_ok=True
+    )  # ? TODO: might be removed to be able to show a product image for historic data
+    product.deleted_at = datetime.now(tz=datetime.UTC)
+    session.add(product)
     session.commit()
+    session.refresh(product)
     return product
