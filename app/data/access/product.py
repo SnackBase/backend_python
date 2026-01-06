@@ -91,7 +91,7 @@ async def save_image(image: UploadFile, path: Path, *, quality: int = 85) -> Non
         await f.write(webp_bytes)
 
 
-async def save_product(product: Product, session: Session) -> Product:
+def save_product(product: Product, session: Session) -> Product:
     """
     Persist a new product to the database.
 
@@ -113,7 +113,7 @@ async def save_product(product: Product, session: Session) -> Product:
     Examples
     --------
     >>> product = Product(name="Cola", price=2.5, type=ProductTypes.DRINK, image_id="abc123")
-    >>> saved = await save_product(product, session)
+    >>> saved = save_product(product, session)
     >>> saved.id
     1
     """
@@ -123,7 +123,7 @@ async def save_product(product: Product, session: Session) -> Product:
     return product
 
 
-async def get_products_data(
+def get_products_data(
     filter: ProductFilterModel,
     *,
     session: Session,
@@ -146,11 +146,11 @@ async def get_products_data(
     Examples
     --------
     >>> # Get all products
-    >>> products = await get_products_data(session=session)
+    >>> products = get_products_data(session=session)
     >>> len(products)
     50
     >>> # Get first 10 products
-    >>> products = await get_products_data(limit=10, session=session)
+    >>> products = get_products_data(limit=10, session=session)
     >>> len(products)
     10
     """
@@ -163,11 +163,10 @@ async def get_products_data(
         statement = statement.offset(offset=filter.offset)
     if filter.limit is not None:
         statement = statement.limit(limit=filter.limit)
-    print(statement)
     return session.exec(statement=statement).all()
 
 
-async def get_product_data_by_id(id: int, session: Session) -> Product:
+def get_product_data_by_id(id: int, session: Session) -> Product:
     """
     Retrieve a single product by its ID.
 
@@ -185,14 +184,14 @@ async def get_product_data_by_id(id: int, session: Session) -> Product:
 
     Examples
     --------
-    >>> product = await get_product_data_by_id(id=1, session=session)
+    >>> product = get_product_data_by_id(id=1, session=session)
     >>> product.name if product else "Not found"
     'Cola 0.33L'
     """
     return session.get(Product, id)
 
 
-async def delete_product_data_by_id(
+def delete_product_data_by_id(
     product: Product,
     session: Session,
 ) -> Product | None:
@@ -221,8 +220,8 @@ async def delete_product_data_by_id(
 
     Examples
     --------
-    >>> product = await get_product_data_by_id(id=1, session=session)
-    >>> deleted = await delete_product_data_by_id(product, session)
+    >>> product = get_product_data_by_id(id=1, session=session)
+    >>> deleted = delete_product_data_by_id(product, session)
     >>> deleted.name
     'Cola 0.33L'
     """

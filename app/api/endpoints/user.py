@@ -12,7 +12,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 async def get_users_endpoint(
     *, _: AuthorizedKioskDep
 ) -> list[UserPublic]:  # ? Necessary Scopes might be changes in a future revision
-    return await get_users()
+    return get_users()
 
 
 @router.get("/me")

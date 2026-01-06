@@ -59,12 +59,12 @@ async def create_product(
         age_restrict=product.age_restrict,
     )
     await save_image(image=product.image, path=db_product.image_path)
-    db_product = await save_product(product=db_product, session=session)
+    db_product = save_product(product=db_product, session=session)
     public_product = ProductPublic.model_validate(db_product)
     return public_product
 
 
-async def get_products(
+def get_products(
     filter: ProductFilterModel,
     *,
     session: Session,
@@ -84,11 +84,11 @@ async def get_products(
     list[ProductPublic]
         List of products with computed image URLs
     """
-    products = await get_products_data(filter=filter, session=session)
+    products = get_products_data(filter=filter, session=session)
     return [ProductPublic.model_validate(p) for p in products]
 
 
-async def get_product_by_id(id: int, session: Session) -> Product | None:
+def get_product_by_id(id: int, session: Session) -> Product | None:
     """
     Retrieve a product database model by ID.
 
@@ -104,10 +104,10 @@ async def get_product_by_id(id: int, session: Session) -> Product | None:
     Product | None
         Product database model or None if not found
     """
-    return await get_product_data_by_id(id=id, session=session)
+    return get_product_data_by_id(id=id, session=session)
 
 
-async def get_public_product_by_id(id: int, session: Session) -> ProductPublic | None:
+def get_public_product_by_id(id: int, session: Session) -> ProductPublic | None:
     """
     Retrieve a product as public API model by ID.
 
@@ -123,13 +123,13 @@ async def get_public_product_by_id(id: int, session: Session) -> ProductPublic |
     ProductPublic | None
         Product with computed image URL or None if not found
     """
-    product = await get_product_by_id(id=id, session=session)
+    product = get_product_by_id(id=id, session=session)
     if product is None:
         return None
     return ProductPublic.model_validate(product)
 
 
-async def delete_product_by_id(id: int, session: Session) -> ProductPublic | None:
+def delete_product_by_id(id: int, session: Session) -> ProductPublic | None:
     """
     Delete a product and its image by ID.
 
@@ -145,8 +145,8 @@ async def delete_product_by_id(id: int, session: Session) -> ProductPublic | Non
     ProductPublic | None
         The deleted product as public model or None if not found
     """
-    product = await get_product_data_by_id(id=id, session=session)
+    product = get_product_data_by_id(id=id, session=session)
     if product is None:
         return None
-    product = await delete_product_data_by_id(product=product, session=session)
+    product = delete_product_data_by_id(product=product, session=session)
     return ProductPublic.model_validate(product)

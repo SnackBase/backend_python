@@ -3,7 +3,7 @@ from app.auth.service import keycloak_admin
 from app.auth.models.user import UserFull
 
 
-async def get_users_data() -> list[UserFull]:
+def get_users_data() -> list[UserFull]:
     # First get the group
     groups: list[dict] = keycloak_admin.get_groups({"search": "customer"})
     if not groups or len(groups) < 1:

@@ -127,7 +127,7 @@ async def get_products_endpoint(
         - 401 UNAUTHORIZED: Missing or invalid authentication token
         - 403 FORBIDDEN: User has no valid scopes
     """
-    return await get_products(filter=filter, session=session)
+    return get_products(filter=filter, session=session)
 
 
 @router.get("/{id}")
@@ -158,7 +158,7 @@ async def get_product_by_id_endpoint(
         - 403 FORBIDDEN: User has no valid scopes
         - 404 NOT_FOUND: Product with given ID doesn't exist
     """
-    product = await get_public_product_by_id(id=id, session=session)
+    product = get_public_product_by_id(id=id, session=session)
     if product is None:
         _product_not_found_error(id=id)
     return product
@@ -194,7 +194,7 @@ async def get_product_image_by_id_endpoint(
         - 403 FORBIDDEN: User has no valid scopes
         - 404 NOT_FOUND: Product doesn't exist or image file not found
     """
-    product = await get_product_by_id(id=id, session=session)
+    product = get_product_by_id(id=id, session=session)
     if product is None:
         _product_not_found_error(id=id)
     if not product.image_path.exists():
@@ -239,7 +239,7 @@ async def delete_product_by_id_endpoint(
         - 403 FORBIDDEN: User lacks admin scope
         - 404 NOT_FOUND: Product with given ID doesn't exist
     """
-    product = await delete_product_by_id(id=id, session=session)
+    product = delete_product_by_id(id=id, session=session)
     if product is None:
         _product_not_found_error(id=id)
     return None
