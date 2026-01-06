@@ -1,8 +1,9 @@
-from pydantic import BaseModel, EmailStr, Field, computed_field, ConfigDict
+from pydantic import EmailStr, computed_field, ConfigDict
+from sqlmodel import SQLModel, Field
 # from pydantic.alias_generators import to_camel
 
 
-class UserPublic(BaseModel):
+class UserPublic(SQLModel):
     """
     Public API schema for user information.
 
@@ -23,6 +24,7 @@ class UserPublic(BaseModel):
     Field aliases allow the model to accept both snake_case and camelCase field names
     but always serialize using the aliases (camelCase).
     """
+
     preferred_username: str = Field(alias="username")
     given_name: str = Field(alias="firstName")
     family_name: str = Field(alias="lastName")
@@ -32,7 +34,7 @@ class UserPublic(BaseModel):
     )
 
 
-class User(UserPublic):
+class UserFull(UserPublic):
     """
     Complete user model with authentication and authorization data.
 
@@ -58,6 +60,7 @@ class User(UserPublic):
     -----
     Inherits preferred_username, given_name, and family_name from UserPublic.
     """
+
     sub: str = Field(
         description="Unique ID from the identity Provider (in the case of keycloak, this is a UUID)",
         alias="id",

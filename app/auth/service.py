@@ -9,7 +9,7 @@ from keycloak import KeycloakAdmin, KeycloakOpenID
 from keycloak.exceptions import KeycloakConnectionError, KeycloakGetError
 from jwcrypto.jwt import JWTExpired
 
-from app.data.models.user import User
+from app.data.models.user import UserFull
 from app.settings import get_settings
 
 
@@ -55,7 +55,7 @@ async def authorize(
     token: TokenDep,
     security_scopes: SecurityScopes,
     mode: Literal["all", "any"] = "all",
-) -> User:
+) -> UserFull:
     """
     Authorize a user based on their JWT token and required scopes.
 
@@ -100,7 +100,7 @@ async def authorize(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Connection error while connecting to auth server. {e}",
         )
-    user = User(**decoded_token)
+    user = UserFull(**decoded_token)
     scopes = security_scopes.scopes
     if len(scopes) < 1:
         return user
@@ -118,7 +118,7 @@ async def authorize(
     return user
 
 
-async def authorize_any(token: TokenDep, security_scopes: SecurityScopes) -> User:
+async def authorize_any(token: TokenDep, security_scopes: SecurityScopes) -> UserFull:
     """
     Authorize a user if they have ANY of the required scopes.
 
@@ -156,7 +156,7 @@ async def authorize_any(token: TokenDep, security_scopes: SecurityScopes) -> Use
     return await authorize(token=token, security_scopes=security_scopes, mode="any")
 
 
-async def authorize_all(token: TokenDep, security_scopes: SecurityScopes) -> User:
+async def authorize_all(token: TokenDep, security_scopes: SecurityScopes) -> UserFull:
     """
     Authorize a user if they have ALL of the required scopes.
 
@@ -195,20 +195,21 @@ async def authorize_all(token: TokenDep, security_scopes: SecurityScopes) -> Use
 
 
 AuthorizedDep = Annotated[
-    User, Security(authorize_any, scopes=[])
+    UserFull, Security(authorize_any, scopes=[])
 ]  # for all authenticated users, ignoring scopes
 AuthorizedAnyDep = Annotated[
-    User, Security(authorize_any, scopes=[s.value for s in SCOPES])
+    UserFull, Security(authorize_any, scopes=[s.value for s in SCOPES])
 ]  # for all users having one of the available scopes
 AuthorizedConsumerDep = Annotated[
-    User, Security(authorize_any, scopes=[SCOPES.CUSTOMER.value, SCOPES.KIOSK.value])
+    UserFull,
+    Security(authorize_any, scopes=[SCOPES.CUSTOMER.value, SCOPES.KIOSK.value]),
 ]  # for all user except the admin
 AuthorizedAdminDep = Annotated[
-    User, Security(authorize_all, scopes=[SCOPES.ADMIN.value])
+    UserFull, Security(authorize_all, scopes=[SCOPES.ADMIN.value])
 ]  # only admin
 AuthorizedKioskDep = Annotated[
-    User, Security(authorize_all, scopes=[SCOPES.KIOSK.value])
+    UserFull, Security(authorize_all, scopes=[SCOPES.KIOSK.value])
 ]  # only kiosk
 AuthorizedCustomerDep = Annotated[
-    User, Security(authorize_all, scopes=[SCOPES.CUSTOMER.value])
+    UserFull, Security(authorize_all, scopes=[SCOPES.CUSTOMER.value])
 ]  # only customer

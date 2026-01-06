@@ -1,9 +1,9 @@
 from app.auth.service import keycloak_admin
 
-from app.data.models.user import User
+from app.data.models.user import UserFull
 
 
-async def get_users_data() -> list[User]:
+async def get_users_data() -> list[UserFull]:
     # First get the group
     groups: list[dict] = keycloak_admin.get_groups({"search": "customer"})
     if not groups or len(groups) < 1:
@@ -15,4 +15,4 @@ async def get_users_data() -> list[User]:
     # Get all members of the group
     users = keycloak_admin.get_group_members(group_id=group_id)
 
-    return [User(**u) for u in users]
+    return [UserFull(**u) for u in users]
