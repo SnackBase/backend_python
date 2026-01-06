@@ -1,7 +1,8 @@
 from uuid import uuid4
 from sqlmodel import Session
 
-from app.data.models.product import Product, ProductCreate, ProductPublic
+from app.api.interface.product import ProductFilterModel
+from app.data.models.product import Product, ProductCreate, ProductPublic, ProductTypes
 from app.data.access.product import (
     delete_product_data_by_id,
     get_product_data_by_id,
@@ -64,7 +65,9 @@ async def create_product(
 
 
 async def get_products(
-    limit: int | None = None, *, session: Session
+    filter: ProductFilterModel,
+    *,
+    session: Session,
 ) -> list[ProductPublic]:
     """
     Retrieve all products as public API models.
@@ -81,7 +84,7 @@ async def get_products(
     list[ProductPublic]
         List of products with computed image URLs
     """
-    products = await get_products_data(limit=limit, session=session)
+    products = await get_products_data(filter=filter, session=session)
     return [ProductPublic.model_validate(p) for p in products]
 
 

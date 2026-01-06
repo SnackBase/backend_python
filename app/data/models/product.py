@@ -1,6 +1,6 @@
 from pathlib import Path
 from sqlmodel import SQLModel, Field
-from pydantic import ConfigDict, computed_field
+from pydantic import ConfigDict, computed_field, BaseModel
 from pydantic.alias_generators import to_camel
 from pydantic_extra_types.currency_code import Currency
 from enum import Enum

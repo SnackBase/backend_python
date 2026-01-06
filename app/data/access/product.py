@@ -6,7 +6,8 @@ from fastapi import UploadFile, HTTPException, status
 from PIL import Image
 from sqlmodel import Sequence, Session, select
 
-from app.data.models.product import Product
+from app.api.interface.product import ProductFilterModel
+from app.data.models.product import Product, ProductTypes
 from app.constants.product import IMAGE_SIZE, MAX_SIZE
 
 
@@ -123,7 +124,9 @@ async def save_product(product: Product, session: Session) -> Product:
 
 
 async def get_products_data(
-    limit: int | None = None, *, session: Session
+    filter: ProductFilterModel,
+    *,
+    session: Session,
 ) -> Sequence[Product]:
     """
     Retrieve products from the database with optional limit.
@@ -152,8 +155,15 @@ async def get_products_data(
     10
     """
     statement = select(Product)
-    if limit is not None:
-        statement = statement.limit(limit=limit)
+    if filter.age_restrict is not None and filter.age_restrict:
+        statement = statement.where(Product.age_restrict != True)  # noqa: E712  # noqa necessary for the condition ahdnling via sqlmodel
+    if filter.product_type is not None:
+        statement = statement.where(Product.type == filter.product_type)
+    if filter.offset is not None:
+        statement = statement.offset(offset=filter.offset)
+    if filter.limit is not None:
+        statement = statement.limit(limit=filter.limit)
+    print(statement)
     return session.exec(statement=statement).all()
 
 

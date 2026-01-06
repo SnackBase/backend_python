@@ -3,6 +3,7 @@ from fastapi import Form, HTTPException, Path, status
 from fastapi.responses import FileResponse
 from fastapi.routing import APIRouter
 
+from app.api.interface.product import ProductFilter, ProductFilterModel
 from app.data.models.product import ProductCreate, ProductPublic
 from app.data.controller.product import (
     create_product,
@@ -100,7 +101,7 @@ async def create_product_endpoint(
 
 @router.get("")
 async def get_products_endpoint(
-    session: SessionDep, _: AuthorizedAnyDep
+    filter: ProductFilter, session: SessionDep, _: AuthorizedAnyDep
 ) -> list[ProductPublic]:
     """
     Retrieve all products.
@@ -126,7 +127,7 @@ async def get_products_endpoint(
         - 401 UNAUTHORIZED: Missing or invalid authentication token
         - 403 FORBIDDEN: User has no valid scopes
     """
-    return await get_products(session=session)
+    return await get_products(filter=filter, session=session)
 
 
 @router.get("/{id}")
