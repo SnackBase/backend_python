@@ -9,6 +9,8 @@ services:
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=postgres
+      - KEYCLOAK_DB_PASSWORD=${KEYCLOAK_DB_PASSWORD}
     volumes:
       - ./container/postgres/init:/docker-entrypoint-initdb.d:z
   keycloak:
