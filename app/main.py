@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+import urllib3
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -9,6 +10,10 @@ from app.api.endpoints.product import router as product_router
 from app.api.endpoints.user import router as user_router
 
 settings = get_settings()
+
+# Disable SSL warnings when SSL verification is disabled for internal Docker network communication
+if not settings.auth_ssl_verify:
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 @asynccontextmanager
