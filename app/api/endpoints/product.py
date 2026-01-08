@@ -26,8 +26,8 @@ router = APIRouter(prefix=ENDPOINT_PREFIX, tags=["Product"])
 IDType = Annotated[int, Path(description="Unique ID of the product", ge=0)]
 
 
-def _product_not_found_error(id: int) -> None:
-    raise HTTPException(
+def _product_not_found_error(id: int) -> HTTPException:
+    return HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"no product found with given ID: {id}",
     )
@@ -161,7 +161,7 @@ async def get_product_by_id_endpoint(
     """
     product = get_public_product_by_id(id=id, session=session)
     if product is None:
-        _product_not_found_error(id=id)
+        raise _product_not_found_error(id=id)
     return product
 
 
@@ -197,7 +197,7 @@ async def get_product_image_by_id_endpoint(
     """
     product = get_product_by_id(id=id, include_deleted=True, session=session)
     if product is None:
-        _product_not_found_error(id=id)
+        raise _product_not_found_error(id=id)
     if not product.image_path.exists():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -242,7 +242,7 @@ async def delete_product_by_id_endpoint(
     """
     product = delete_product_by_id(id=id, session=session)
     if product is None:
-        _product_not_found_error(id=id)
+        raise _product_not_found_error(id=id)
     return None
 
 
@@ -256,5 +256,5 @@ async def update_product_price_by_id_endpoint(
 ) -> ProductPublic | None:
     product = update_product_price(price=price, id=id, session=session)
     if product is None:
-        _product_not_found_error(id=id)
+        raise _product_not_found_error(id=id)
     return product

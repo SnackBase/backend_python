@@ -1,5 +1,4 @@
 from datetime import datetime, UTC
-from decimal import Decimal
 from typing import TYPE_CHECKING
 from pydantic import computed_field
 from sqlmodel import Field, Relationship, SQLModel

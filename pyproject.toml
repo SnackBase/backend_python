@@ -14,6 +14,8 @@ dependencies = [
     "pydantic-settings>=2.12.0",
     "python-keycloak>=6.0.0",
     "sqlmodel>=0.0.31",
+    "types-aiofiles>=25.1.0.20251011",
+    "types-jwcrypto>=1.5.0.20251102",
 ]
 
 [dependency-groups]

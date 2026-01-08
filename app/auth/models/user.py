@@ -30,7 +30,7 @@ class UserPublic(SQLModel):
 
     model_config = ConfigDict(
         populate_by_name=True, from_attributes=True, serialize_by_alias=True
-    )
+    )  # type: ignore[assignment]
 
 
 class UserFull(UserPublic):
@@ -85,4 +85,4 @@ class UserFull(UserPublic):
         >>> user.scopes
         ['admin', 'customer', 'kiosk']
         """
-        return self.scope.split(" ")
+        return self.scope.split(" ") if self.scope is not None else []

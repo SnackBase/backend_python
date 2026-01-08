@@ -1,5 +1,4 @@
 from datetime import datetime, UTC
-from decimal import Decimal
 from pathlib import Path
 from typing import TYPE_CHECKING
 import uuid
@@ -40,14 +39,13 @@ class ProductBase(SQLModel):
     price: float = Field(ge=0)
     type: ProductTypes
     currency: Currency = Field(default=Currency("EUR"))
-    age_restrict: bool
 
     model_config = ConfigDict(
         alias_generator=to_camel,
         populate_by_name=True,
         from_attributes=True,
         serialize_by_alias=True,
-    )
+    )  # type: ignore[assignment]
 
 
 class ProductCreate(ProductBase):
@@ -92,8 +90,9 @@ class ProductPublic(ProductBase):
     """
 
     id: int
+    age_restrict: bool
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def image(self) -> str:
         """
@@ -143,6 +142,7 @@ class Product(ProductBase, table=True):
         default_factory=uuid.uuid4,
         description="This ID (UUID) is persistent over changes of the product, but now unique over all instances of products.",
     )
+    age_restrict: bool
     image_id: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(tz=UTC))
     deleted_at: datetime | None = Field(default=None)

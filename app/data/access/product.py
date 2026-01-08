@@ -4,8 +4,8 @@ import io
 import aiofiles
 from fastapi import UploadFile, HTTPException, status
 from PIL import Image
-from sqlmodel import Sequence, Session, select
-from datetime import datetime
+from sqlmodel import Session, select
+from datetime import UTC, datetime
 
 from app.api.interface.product import ProductFilterModel
 from app.data.models.product import Product
@@ -54,27 +54,27 @@ async def save_image(image: UploadFile, path: Path, *, quality: int = 85) -> Non
         )
 
     def convert_to_webp_bytes() -> bytes:
-        with Image.open(io.BytesIO(data)) as img:
+        with Image.open(io.BytesIO(data)) as original_img:
             # Resize large images for faster processing and smaller files
-            if img.width > MAX_SIZE[0] or img.height > MAX_SIZE[1]:
-                img.thumbnail(MAX_SIZE, Image.Resampling.LANCZOS)
+            if original_img.width > MAX_SIZE[0] or original_img.height > MAX_SIZE[1]:
+                original_img.thumbnail(MAX_SIZE, Image.Resampling.LANCZOS)
 
             # Preserve transparency for images that have it
-            if img.mode in ("RGBA", "LA"):
+            if original_img.mode in ("RGBA", "LA"):
                 # Already has alpha channel, keep it
-                img = img.convert("RGBA")
-            elif img.mode == "P":
+                img = original_img.convert("RGBA")
+            elif original_img.mode == "P":
                 # Palette mode - check if it has transparency
-                if "transparency" in img.info:
-                    img = img.convert("RGBA")
+                if "transparency" in original_img.info:
+                    img = original_img.convert("RGBA")
                 else:
-                    img = img.convert("RGB")
-            elif img.mode == "RGB":
+                    img = original_img.convert("RGB")
+            elif original_img.mode == "RGB":
                 # Already RGB, no transparency
-                pass
+                img = original_img
             else:
                 # Other modes (L, CMYK, etc.) - convert to RGB
-                img = img.convert("RGB")
+                img = original_img.convert("RGB")
 
             buf = io.BytesIO()
             # Use method=1 for faster encoding (good speed/quality balance)
@@ -137,7 +137,7 @@ def get_products_data(
     filter: ProductFilterModel,
     *,
     session: Session,
-) -> Sequence[Product]:
+) -> list[Product]:
     """
     Retrieve products from the database with optional limit.
 
@@ -173,12 +173,12 @@ def get_products_data(
         statement = statement.offset(offset=filter.offset)
     if filter.limit is not None:
         statement = statement.limit(limit=filter.limit)
-    return session.exec(statement=statement).all()
+    return list(session.exec(statement=statement).all())
 
 
 def get_product_data_by_id(
     id: int, include_deleted: bool = False, *, session: Session
-) -> Product:
+) -> Product | None:
     """
     Retrieve a single product by its ID.
 
@@ -209,7 +209,7 @@ def get_product_data_by_id(
 def delete_product_data_by_id(
     product: Product,
     session: Session,
-) -> Product | None:
+) -> Product:
     """
     Delete a product and its associated image file from the system.
 
@@ -245,7 +245,7 @@ def delete_product_data_by_id(
     product.image_path.unlink(
         missing_ok=True
     )  # ? TODO: might be removed to be able to show a product image for historic data
-    product.deleted_at = datetime.now(tz=datetime.UTC)
+    product.deleted_at = datetime.now(tz=UTC)
     session.add(product)
     session.commit()
     session.refresh(product)

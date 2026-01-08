@@ -64,6 +64,8 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "python-keycloak" },
     { name = "sqlmodel" },
+    { name = "types-aiofiles" },
+    { name = "types-jwcrypto" },
 ]
 
 [package.dev-dependencies]
@@ -83,6 +85,8 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.12.0" },
     { name = "python-keycloak", specifier = ">=6.0.0" },
     { name = "sqlmodel", specifier = ">=0.0.31" },
+    { name = "types-aiofiles", specifier = ">=25.1.0.20251011" },
+    { name = "types-jwcrypto", specifier = ">=1.5.0.20251102" },
 ]
 
 [package.metadata.requires-dev]
@@ -1197,6 +1201,27 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/85/30/ff9ede605e3bd086b4dd842499814e128500621f7951ca1e5ce84bbf61b1/typer-0.21.0.tar.gz", hash = "sha256:c87c0d2b6eee3b49c5c64649ec92425492c14488096dfbc8a0c2799b2f6f9c53", size = 106781, upload-time = "2025-12-25T09:54:53.651Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e1/e4/5ebc1899d31d2b1601b32d21cfb4bba022ae6fce323d365f0448031b1660/typer-0.21.0-py3-none-any.whl", hash = "sha256:c79c01ca6b30af9fd48284058a7056ba0d3bf5cf10d0ff3d0c5b11b68c258ac6", size = 47109, upload-time = "2025-12-25T09:54:51.918Z" },
+]
+
+[[package]]
+name = "types-aiofiles"
+version = "25.1.0.20251011"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/84/6c/6d23908a8217e36704aa9c79d99a620f2fdd388b66a4b7f72fbc6b6ff6c6/types_aiofiles-25.1.0.20251011.tar.gz", hash = "sha256:1c2b8ab260cb3cd40c15f9d10efdc05a6e1e6b02899304d80dfa0410e028d3ff", size = 14535, upload-time = "2025-10-11T02:44:51.237Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/71/0f/76917bab27e270bb6c32addd5968d69e558e5b6f7fb4ac4cbfa282996a96/types_aiofiles-25.1.0.20251011-py3-none-any.whl", hash = "sha256:8ff8de7f9d42739d8f0dadcceeb781ce27cd8d8c4152d4a7c52f6b20edb8149c", size = 14338, upload-time = "2025-10-11T02:44:50.054Z" },
+]
+
+[[package]]
+name = "types-jwcrypto"
+version = "1.5.0.20251102"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cryptography" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/08/a7/103a4b02c6fb8718994252d5840b11d770f090d4100aa460194cc009bc62/types_jwcrypto-1.5.0.20251102.tar.gz", hash = "sha256:c3b93a85d130a1c16999d2a3c435e5bd6a9b394754239190c5fe49cedcc0a98f", size = 11637, upload-time = "2025-11-02T03:07:38.388Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cf/15/e305c0ae6aaca68842c73fee5080eadd51a702a1562f05d9653d6e9b5a94/types_jwcrypto-1.5.0.20251102-py3-none-any.whl", hash = "sha256:506c93a09c6a988fc5a56bfe92f0cf80b31a0acee98bd6e807277bb0c6f8c1d0", size = 12978, upload-time = "2025-11-02T03:07:37.398Z" },
 ]
 
 [[package]]
