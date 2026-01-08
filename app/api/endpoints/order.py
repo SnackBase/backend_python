@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 
 from app.data.connector import SessionDep
-from app.data.controller.order import create_order
+from app.data.controller.order import create_order, get_my_orders
 from app.data.controller.user import UserDBDep
 from app.data.models.order import OrderCreate, OrderPublic
 
@@ -19,3 +19,8 @@ def create_new_order_endpoint(
     except ValueError as e:
         # TODO: change status code
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.get("/me")
+def get_my_orders_endpoint(user: UserDBDep) -> list[OrderPublic]:
+    return get_my_orders(user=user)
