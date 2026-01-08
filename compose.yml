@@ -13,6 +13,7 @@ services:
       - KEYCLOAK_DB_PASSWORD=${KEYCLOAK_DB_PASSWORD}
     volumes:
       - ./container/postgres/init:/docker-entrypoint-initdb.d:z
+      - ./data/postgres/:/var/lib/postgresql/:z
   keycloak:
     build:
       context: ./container/keycloak/
@@ -27,7 +28,7 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
     ports:
       - "${KC_HOST_PORT}:8443"
-    command: start --optimized
+    command: start --optimized --import-realm
     depends_on:
       db:
         condition: service_started
