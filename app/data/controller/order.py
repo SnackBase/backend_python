@@ -1,5 +1,9 @@
 from sqlmodel import Session
-from app.data.access.order import create_order_data, get_my_orders_data
+from app.data.access.order import (
+    create_order_data,
+    get_user_orders_data,
+    get_order_by_id_data,
+)
 from app.data.access.product import get_product_data_by_id
 from app.data.models.order import (
     Order,
@@ -46,8 +50,17 @@ def convert_order_to_public(order: Order) -> OrderPublic:
     return OrderPublic(**(order.model_dump() | {"items": public_items}))
 
 
-def get_my_orders(user: User) -> list[OrderPublic]:
-    orders = get_my_orders_data(user=user)
+def get_user_orders(user: User) -> list[OrderPublic]:
+    orders = get_user_orders_data(user=user)
     if orders is None:
         return []
     return [convert_order_to_public(order=order) for order in orders]
+
+
+def get_order_by_id(id: int, user: User, session: Session) -> OrderPublic | None:
+    order = get_order_by_id_data(id=id, session=session)
+    if order is None:
+        return None
+    if order not in user.orders:
+        raise KeyError
+    return convert_order_to_public(order=order)

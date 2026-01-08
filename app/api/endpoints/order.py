@@ -1,9 +1,17 @@
-from fastapi import APIRouter, HTTPException, status
+from typing import Annotated
+from fastapi import APIRouter, HTTPException, Query, status
 
 from app.data.connector import SessionDep
-from app.data.controller.order import create_order, get_my_orders
+from app.data.controller.order import create_order, get_user_orders, get_order_by_id
 from app.data.controller.user import UserDBDep
 from app.data.models.order import OrderCreate, OrderPublic
+
+
+def _order_not_found_exception(id: int) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"No order found with given id {id}",
+    )
 
 
 # TODO: regroup tags as enum for all routers
@@ -22,5 +30,18 @@ def create_new_order_endpoint(
 
 
 @router.get("/me")
-def get_my_orders_endpoint(user: UserDBDep) -> list[OrderPublic]:
-    return get_my_orders(user=user)
+def get_user_orders_endpoint(user: UserDBDep) -> list[OrderPublic]:
+    return get_user_orders(user=user)
+
+
+@router.get("/{id}")
+def get_order_by_id_endpoint(
+    id: int, *, user: UserDBDep, session: SessionDep
+) -> OrderPublic:
+    try:
+        order = get_order_by_id(id=id, user=user, session=session)
+    except KeyError:
+        raise _order_not_found_exception(id=id)
+    if order is None:
+        raise _order_not_found_exception(id=id)
+    return order

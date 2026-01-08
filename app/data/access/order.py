@@ -10,5 +10,9 @@ def create_order_data(order: Order, session: Session) -> Order:
     return order
 
 
-def get_my_orders_data(user: User) -> list[Order] | None:
+def get_user_orders_data(user: User) -> list[Order] | None:
     return user.orders
+
+
+def get_order_by_id_data(id: int, session: Session) -> Order | None:
+    return session.get(Order, id)
