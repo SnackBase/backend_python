@@ -74,3 +74,6 @@ def get_order_by_id(
     if not admin_access and order not in user.orders:
         raise KeyError
     return convert_order_to_public(order=order)
+
+
+# TODO: add endpoint to delete order (as admin at least, maybe as user with admin confirmation)
