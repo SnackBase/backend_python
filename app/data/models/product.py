@@ -1,17 +1,20 @@
 from datetime import datetime, UTC
 from decimal import Decimal
 from pathlib import Path
+from typing import TYPE_CHECKING
 import uuid
-from sqlmodel import SQLModel, Field
+from sqlmodel import Relationship, SQLModel, Field
 from pydantic import ConfigDict, computed_field
 from pydantic.alias_generators import to_camel
 from pydantic_extra_types.currency_code import Currency
-from enum import Enum
 from fastapi import UploadFile
 
 from app.constants.product import IMAGE_ROUTE, ENDPOINT_PREFIX
 from app.data.enums.product import ProductTypes
 from app.settings import get_settings
+
+if TYPE_CHECKING:
+    from app.data.models.order import OrderItem
 
 
 settings = get_settings()
@@ -34,7 +37,7 @@ class ProductBase(SQLModel):
     """
 
     name: str
-    price: Decimal = Field(ge=0, decimal_places=2)
+    price: float = Field(ge=0)
     type: ProductTypes
     currency: Currency = Field(default=Currency("EUR"))
     age_restrict: bool
@@ -143,6 +146,9 @@ class Product(ProductBase, table=True):
     image_id: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(tz=UTC))
     deleted_at: datetime | None = Field(default=None)
+
+    # relationship
+    items: list["OrderItem"] = Relationship(back_populates="product")
 
     @property
     def image_path(self) -> Path:

@@ -38,7 +38,7 @@ class Settings(BaseSettings):
         default=True,
     )
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def authorization_url(self) -> str:
         return (
@@ -48,7 +48,7 @@ class Settings(BaseSettings):
             + "/auth"
         )
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def token_url(self) -> str:
         return (
@@ -64,7 +64,7 @@ class Settings(BaseSettings):
     # Data
     data_root_dir: DirectoryPath = Path("./data")
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def product_image_root_dir(self) -> Path:
         return self.data_root_dir / "product/images"
@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     )
     api_prefix: str = "/api/v1"
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def api_host(self) -> HttpUrl:
         return HttpUrl(f"{self.host}/{self.api_prefix}")

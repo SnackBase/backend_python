@@ -1,0 +1,65 @@
+from datetime import datetime, UTC
+from decimal import Decimal
+from typing import TYPE_CHECKING
+from pydantic import computed_field
+from sqlmodel import Field, Relationship, SQLModel
+
+
+if TYPE_CHECKING:
+    from app.data.models.user import User
+    from app.data.models.product import Product
+
+
+class OrderItemBase(SQLModel):
+    product_id: int
+    count: int = Field(gt=0)
+
+
+class OrderCreate(SQLModel):
+    items: list["OrderItemCreate"] = Field(min_items=1)
+
+
+class OrderItemCreate(OrderItemBase):
+    pass
+
+
+class OrderPublic(SQLModel):
+    id: int
+    user_id: int
+    created_at: datetime
+    items: list["OrderItemPublic"] = Field(min_items=1)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def total_per_order(self) -> float:
+        return sum(item.total_per_order_item for item in self.items)
+
+
+class OrderItemPublic(OrderItemBase):
+    price_per_item: float = Field()
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def total_per_order_item(self) -> float:
+        return self.price_per_item * self.count
+
+
+class Order(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(tz=UTC))
+    deleted_at: datetime | None = Field(default=None)
+
+    # relationships
+    user: "User" = Relationship(back_populates="orders")
+    items: list["OrderItem"] = Relationship(back_populates="order")
+
+
+class OrderItem(OrderItemBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    order_id: int = Field(foreign_key="order.id")
+    product_id: int = Field(foreign_key="product.id")
+
+    # relationships
+    order: Order | None = Relationship(back_populates="items")
+    product: "Product" = Relationship(back_populates="items")

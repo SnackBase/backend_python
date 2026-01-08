@@ -68,7 +68,7 @@ class UserFull(UserPublic):
     email_verified: bool = Field(alias="emailVerified")
     scope: str | None = ""
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def scopes(self) -> list[str]:
         """

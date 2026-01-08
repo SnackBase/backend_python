@@ -5,7 +5,7 @@ import aiofiles
 from fastapi import UploadFile, HTTPException, status
 from PIL import Image
 from sqlmodel import Sequence, Session, select
-from datetime import datetime, UTC
+from datetime import datetime
 
 from app.api.interface.product import ProductFilterModel
 from app.data.models.product import Product
@@ -201,7 +201,7 @@ def get_product_data_by_id(
     'Cola 0.33L'
     """
     product = session.get(Product, id)
-    if not include_deleted and product.deleted_at is not None:
+    if product is None or (not include_deleted and product.deleted_at is not None):
         return None
     return product
 

@@ -1,7 +1,7 @@
 import uvicorn
 
 from app import app
-from settings import get_settings
+from app.settings import get_settings
 
 if __name__ == "__main__":
     settings = get_settings()

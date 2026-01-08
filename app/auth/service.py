@@ -51,8 +51,24 @@ keycloak_admin = KeycloakAdmin(
 )
 
 
+async def authenticate(token: TokenDep) -> UserFull:
+    try:
+        decoded_token = await keycloak_openid.a_decode_token(token=token)
+    except JWTExpired as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except (KeycloakConnectionError, KeycloakGetError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Connection error while connecting to auth server. {e}",
+        )
+    return UserFull(**decoded_token)
+
+
+AuthenticatedUserDep = Annotated[UserFull, Depends(authenticate)]
+
+
 async def authorize(
-    token: TokenDep,
+    user: AuthenticatedUserDep,
     security_scopes: SecurityScopes,
     mode: Literal["all", "any"] = "all",
 ) -> UserFull:
@@ -91,16 +107,6 @@ async def authorize(
     >>> print(user.scopes)
     ['admin', 'customer']
     """
-    try:
-        decoded_token = await keycloak_openid.a_decode_token(token=token)
-    except JWTExpired as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
-    except (KeycloakConnectionError, KeycloakGetError) as e:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Connection error while connecting to auth server. {e}",
-        )
-    user = UserFull(**decoded_token)
     scopes = security_scopes.scopes
     if len(scopes) < 1:
         return user
@@ -118,7 +124,9 @@ async def authorize(
     return user
 
 
-async def authorize_any(token: TokenDep, security_scopes: SecurityScopes) -> UserFull:
+async def authorize_any(
+    user: AuthenticatedUserDep, security_scopes: SecurityScopes
+) -> UserFull:
     """
     Authorize a user if they have ANY of the required scopes.
 
@@ -153,10 +161,12 @@ async def authorize_any(token: TokenDep, security_scopes: SecurityScopes) -> Use
     >>> # User with scope "customer" will be authorized
     >>> user = await authorize_any(token, SecurityScopes(scopes=["admin", "customer"]))
     """
-    return await authorize(token=token, security_scopes=security_scopes, mode="any")
+    return await authorize(user=user, security_scopes=security_scopes, mode="any")
 
 
-async def authorize_all(token: TokenDep, security_scopes: SecurityScopes) -> UserFull:
+async def authorize_all(
+    user: AuthenticatedUserDep, security_scopes: SecurityScopes
+) -> UserFull:
     """
     Authorize a user if they have ALL of the required scopes.
 
@@ -191,7 +201,7 @@ async def authorize_all(token: TokenDep, security_scopes: SecurityScopes) -> Use
     >>> # User must have both "admin" and "customer" scopes
     >>> user = await authorize_all(token, SecurityScopes(scopes=["admin", "customer"]))
     """
-    return await authorize(token=token, security_scopes=security_scopes, mode="all")
+    return await authorize(user=user, security_scopes=security_scopes, mode="all")
 
 
 AuthorizedDep = Annotated[

@@ -3,7 +3,7 @@ from fastapi import Form, HTTPException, Path, Query, status
 from fastapi.responses import FileResponse
 from fastapi.routing import APIRouter
 
-from app.api.interface.product import ProductFilter, ProductFilterModel
+from app.api.interface.product import ProductFilter
 from app.data.models.product import ProductCreate, ProductPublic
 from app.data.controller.product import (
     create_product,
@@ -253,7 +253,7 @@ async def update_product_price_by_id_endpoint(
     *,
     session: SessionDep,
     _: AuthorizedAdminDep,
-) -> None:
+) -> ProductPublic | None:
     product = update_product_price(price=price, id=id, session=session)
     if product is None:
         _product_not_found_error(id=id)
