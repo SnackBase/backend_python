@@ -1,7 +1,7 @@
-from typing import Annotated
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, status
 from sqlmodel import Session
 
+from app.api.interface.tags import Tags
 from app.auth.service import AuthorizedAdminDep
 from app.data.connector import SessionDep
 from app.data.controller.order import (
@@ -22,8 +22,8 @@ def _order_not_found_exception(id: int) -> HTTPException:
     )
 
 
-# TODO: regroup tags as enum for all routers
-router = APIRouter(prefix="/orders", tags=["Orders"])
+router = APIRouter(prefix="/orders", tags=[Tags.ORDERS])
+admin_router = APIRouter(prefix="/admin", tags=[Tags.ADMIN])
 
 
 @router.post("")
@@ -38,13 +38,6 @@ def create_new_order_endpoint(
 
 
 @router.get("")
-def get_orders_endpoint(
-    include_deleted: bool = False, *, session: SessionDep, _: AuthorizedAdminDep
-) -> list[OrderPublic]:
-    return get_orders(include_deleted=include_deleted, session=session)
-
-
-@router.get("/me")
 def get_user_orders_endpoint(user: UserDBDep) -> list[OrderPublic]:
     return get_user_orders(user=user)
 
@@ -70,8 +63,18 @@ def get_order_by_id_endpoint(
     return _get_order_by_id(id=id, user=user, session=session, admin_access=False)
 
 
-@router.get("/admin/{id}")
+@admin_router.get("")
+def get_orders_endpoint(
+    include_deleted: bool = False, *, session: SessionDep, _: AuthorizedAdminDep
+) -> list[OrderPublic]:
+    return get_orders(include_deleted=include_deleted, session=session)
+
+
+@admin_router.get("/{id}")
 def get_order_by_id_admin_endpoint(
     id: int, *, user: UserDBDep, _: AuthorizedAdminDep, session: SessionDep
 ) -> OrderPublic:
     return _get_order_by_id(id=id, user=user, session=session, admin_access=True)
+
+
+router.include_router(admin_router)

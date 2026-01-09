@@ -4,6 +4,9 @@ from pydantic import computed_field
 from sqlmodel import Field, Relationship, SQLModel
 
 
+from app.data.models.config import model_config
+
+
 if TYPE_CHECKING:
     from app.data.models.user import User
     from app.data.models.product import Product
@@ -12,9 +15,14 @@ if TYPE_CHECKING:
 class OrderItemBase(SQLModel):
     product_id: int
     count: int = Field(gt=0)
+    model_config = model_config  # type: ignore[assignment]
 
 
-class OrderCreate(SQLModel):
+class OrderBase(SQLModel):
+    model_config = model_config  # type: ignore[assignment]
+
+
+class OrderCreate(OrderBase):
     items: list["OrderItemCreate"] = Field(min_items=1)
 
 
@@ -22,7 +30,7 @@ class OrderItemCreate(OrderItemBase):
     pass
 
 
-class OrderPublic(SQLModel):
+class OrderPublic(OrderBase):
     id: int
     user_id: int
     created_at: datetime
@@ -43,7 +51,7 @@ class OrderItemPublic(OrderItemBase):
         return self.price_per_item * self.count
 
 
-class Order(SQLModel, table=True):
+class Order(OrderBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
     created_at: datetime = Field(default_factory=lambda: datetime.now(tz=UTC))

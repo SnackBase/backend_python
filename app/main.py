@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Backend API for DrinkBar",
-    description="This API provides database connectivity and database validation.",
+    description="This API provides database connectivity and data validation.",
     root_path="/api/v1",
     lifespan=lifespan,
     swagger_ui_init_oauth={  # see: https://swagger.io/docs/open-source-tools/swagger-ui/usage/oauth2/

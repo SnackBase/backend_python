@@ -1,11 +1,12 @@
 from fastapi import APIRouter
 
+from app.api.interface.tags import Tags
 from app.auth.service import AuthorizedDep, AuthorizedKioskDep
 from app.data.controller.user import get_users
 from app.auth.models.user import UserFull, UserPublic
 
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(prefix="/users", tags=[Tags.USERS])
 
 
 @router.get("")

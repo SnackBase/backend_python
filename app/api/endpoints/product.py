@@ -4,6 +4,7 @@ from fastapi.responses import FileResponse
 from fastapi.routing import APIRouter
 
 from app.api.interface.product import ProductFilter
+from app.api.interface.tags import Tags
 from app.data.models.product import ProductCreate, ProductPublic
 from app.data.controller.product import (
     create_product,
@@ -21,7 +22,7 @@ from app.constants.product import (
 )
 from app.auth.service import AuthorizedAnyDep, AuthorizedAdminDep
 
-router = APIRouter(prefix=ENDPOINT_PREFIX, tags=["Product"])
+router = APIRouter(prefix=ENDPOINT_PREFIX, tags=[Tags.PRODUCTS])
 
 IDType = Annotated[int, Path(description="Unique ID of the product", ge=0)]
 

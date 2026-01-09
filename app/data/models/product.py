@@ -3,14 +3,14 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 import uuid
 from sqlmodel import Relationship, SQLModel, Field
-from pydantic import ConfigDict, computed_field
-from pydantic.alias_generators import to_camel
+from pydantic import computed_field
 from pydantic_extra_types.currency_code import Currency
 from fastapi import UploadFile
 
 from app.constants.product import IMAGE_ROUTE, ENDPOINT_PREFIX
 from app.data.enums.product import ProductTypes
 from app.settings import get_settings
+from app.data.models.config import model_config
 
 if TYPE_CHECKING:
     from app.data.models.order import OrderItem
@@ -40,12 +40,7 @@ class ProductBase(SQLModel):
     type: ProductTypes
     currency: Currency = Field(default=Currency("EUR"))
 
-    model_config = ConfigDict(
-        alias_generator=to_camel,
-        populate_by_name=True,
-        from_attributes=True,
-        serialize_by_alias=True,
-    )  # type: ignore[assignment]
+    model_config = model_config  # type: ignore[assignment]
 
 
 class ProductCreate(ProductBase):
