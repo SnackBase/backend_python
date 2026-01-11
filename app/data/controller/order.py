@@ -40,7 +40,10 @@ def create_order(order: OrderCreate, user: User, session: Session) -> OrderPubli
 
 
 def convert_order_to_public(order: Order) -> OrderPublic:
-    public_items = [OrderItemPublic.model_validate(item) for item in order.items]
+    public_items = [
+        OrderItemPublic(**(item.model_dump() | item.product.model_dump()))
+        for item in order.items
+    ]
     return OrderPublic(**(order.model_dump() | {"items": public_items}))
 
 
@@ -55,7 +58,11 @@ def get_user_orders(user: User, session: Session) -> list[OrderPublic]:
     orders = get_user_orders_data(user=user)
     if orders is None:
         return []
-    return [convert_order_to_public(order=order) for order in orders]
+    return sorted(
+        [convert_order_to_public(order=order) for order in orders],
+        key=lambda x: x.id,
+        reverse=True,
+    )
 
 
 def get_order_by_id(

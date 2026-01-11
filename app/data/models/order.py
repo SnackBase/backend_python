@@ -42,13 +42,11 @@ class OrderPublic(OrderBase):
         return sum(item.total_per_order_item for item in self.items)
 
 
-class OrderItemPublic(OrderItemBase):
-    product: ProductPublic
-
+class OrderItemPublic(OrderItemBase, ProductPublic):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def total_per_order_item(self) -> float:
-        return self.product.price * self.count
+        return self.price * self.count
 
 
 class Order(OrderBase, table=True):
