@@ -22,11 +22,12 @@ def _order_not_found_exception(id: int) -> HTTPException:
     )
 
 
-router = APIRouter(prefix="/orders", tags=[Tags.ORDERS])
-admin_router = APIRouter(prefix="/admin", tags=[Tags.ADMIN])
+router = APIRouter(tags=[Tags.ORDERS])
+consumer_router = APIRouter(prefix="/orders", tags=[Tags.CONSUMERS])
+admin_router = APIRouter(prefix="/admin/orders", tags=[Tags.ADMIN])
 
 
-@router.post("")
+@consumer_router.post("")
 def create_new_order_endpoint(
     order: OrderCreate, *, user: UserDBDep, session: SessionDep
 ) -> OrderPublic:
@@ -37,7 +38,7 @@ def create_new_order_endpoint(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
-@router.get("")
+@consumer_router.get("")
 def get_user_orders_endpoint(user: UserDBDep) -> list[OrderPublic]:
     return get_user_orders(user=user)
 
@@ -56,7 +57,7 @@ def _get_order_by_id(
     return order
 
 
-@router.get("/{id}")
+@consumer_router.get("/{id}")
 def get_order_by_id_endpoint(
     id: int, *, user: UserDBDep, session: SessionDep
 ) -> OrderPublic:
@@ -78,3 +79,4 @@ def get_order_by_id_admin_endpoint(
 
 
 router.include_router(admin_router)
+router.include_router(consumer_router)
