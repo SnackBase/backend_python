@@ -23,8 +23,12 @@ def _order_not_found_exception(id: int) -> HTTPException:
 
 
 router = APIRouter(tags=[Tags.ORDERS])
-consumer_router = APIRouter(prefix="/orders", tags=[Tags.CONSUMERS])
-admin_router = APIRouter(prefix="/admin/orders", tags=[Tags.ADMIN])
+consumer_router = APIRouter(
+    prefix=f"/{Tags.ORDERS.value.lower()}", tags=[Tags.CONSUMERS]
+)
+admin_router = APIRouter(
+    prefix=f"/{Tags.ADMIN.value.lower()}/{Tags.ORDERS.value.lower()}", tags=[Tags.ADMIN]
+)
 
 
 @consumer_router.post("")

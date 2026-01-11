@@ -1,8 +1,15 @@
 from typing import Annotated
 from fastapi import Depends, HTTPException, status
+from sqlmodel import Session
 from app.auth.service import AuthenticatedUserDep
-from app.data.access.user import add_user_to_db, get_user_from_db, get_users_data
-from app.auth.models.user import UserPublic
+from app.data.access.user import (
+    add_user_to_db,
+    get_user_data_from_authserver_by_id,
+    get_user_from_db,
+    get_user_from_db_by_numeric_id,
+    get_users_data,
+)
+from app.auth.models.user import UserDetailView, UserPublic
 from app.data.connector import SessionDep
 from app.data.models.user import User
 
@@ -10,6 +17,14 @@ from app.data.models.user import User
 def get_users() -> list[UserPublic]:
     users = get_users_data()
     return [UserPublic.model_validate(u) for u in users]
+
+
+def get_user_from_authserver_by_id(id: int, session: Session) -> UserDetailView | None:
+    user_db = get_user_from_db_by_numeric_id(id=id, session=session)
+    if user_db is None:
+        return None
+    user = get_user_data_from_authserver_by_id(id=user_db.sub)
+    return UserDetailView.model_validate(user)
 
 
 def check_if_user_in_db(user: AuthenticatedUserDep, session: SessionDep) -> User:

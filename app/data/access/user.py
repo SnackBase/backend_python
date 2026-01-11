@@ -1,3 +1,4 @@
+import uuid
 from sqlmodel import Session, select
 from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 
@@ -20,6 +21,15 @@ def get_users_data() -> list[UserFull]:
     users = keycloak_admin.get_group_members(group_id=group_id)
 
     return [UserFull(**u) for u in users]
+
+
+def get_user_data_from_authserver_by_id(id: uuid.UUID) -> UserFull:
+    user = keycloak_admin.get_user(user_id=str(id))
+    return UserFull(**user)
+
+
+def get_user_from_db_by_numeric_id(id: int, session: Session) -> User | None:
+    return session.get(User, id)
 
 
 def get_user_from_db(user: UserFull, session: Session) -> User | None:

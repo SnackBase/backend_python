@@ -1,8 +1,7 @@
-from pydantic import EmailStr, computed_field, ConfigDict
-from sqlmodel import SQLModel, Field
+from pydantic import EmailStr, computed_field, ConfigDict, BaseModel, Field
 
 
-class UserPublic(SQLModel):
+class UserPublic(BaseModel):
     """
     Public API schema for user information.
 
@@ -30,10 +29,15 @@ class UserPublic(SQLModel):
 
     model_config = ConfigDict(
         populate_by_name=True, from_attributes=True, serialize_by_alias=True
-    )  # type: ignore[assignment]
+    )
 
 
-class UserFull(UserPublic):
+class UserDetailView(UserPublic):
+    email: EmailStr
+    email_verified: bool = Field(alias="emailVerified")
+
+
+class UserFull(UserDetailView):
     """
     Complete user model with authentication and authorization data.
 
@@ -63,9 +67,8 @@ class UserFull(UserPublic):
     sub: str = Field(
         description="Unique ID from the identity Provider (in the case of keycloak, this is a UUID)",
         alias="id",
+        exclude=True,
     )
-    email: EmailStr
-    email_verified: bool = Field(alias="emailVerified")
     scope: str | None = ""
 
     @computed_field  # type: ignore[prop-decorator]
