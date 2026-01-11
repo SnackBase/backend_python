@@ -4,6 +4,7 @@ from pydantic import computed_field
 from sqlmodel import Field, Relationship, SQLModel
 
 
+from app.auth.models.user import UserDetailView
 from app.data.models.config import model_config
 from app.data.models.product import ProductPublic
 
@@ -32,7 +33,7 @@ class OrderItemCreate(OrderItemBase):
 
 class OrderPublic(OrderBase):
     id: int
-    user_id: int
+    user: UserDetailView
     created_at: datetime
     items: list["OrderItemPublic"] = Field(min_items=1)
 

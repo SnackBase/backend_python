@@ -4,7 +4,7 @@ from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 
 
 from app.auth.service import keycloak_admin
-from app.auth.models.user import UserFull
+from app.auth.models.user import UserDetailView, UserFull
 from app.data.models.user import User
 
 
@@ -23,9 +23,9 @@ def get_users_data() -> list[UserFull]:
     return [UserFull(**u) for u in users]
 
 
-def get_user_data_from_authserver_by_id(id: uuid.UUID) -> UserFull:
+def get_user_data_from_authserver_by_id(id: uuid.UUID) -> UserDetailView:
     user = keycloak_admin.get_user(user_id=str(id))
-    return UserFull(**user)
+    return UserDetailView(**user)
 
 
 def get_user_from_db_by_numeric_id(id: int, session: Session) -> User | None:

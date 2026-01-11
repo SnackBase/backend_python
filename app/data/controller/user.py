@@ -23,8 +23,7 @@ def get_user_from_authserver_by_id(id: int, session: Session) -> UserDetailView 
     user_db = get_user_from_db_by_numeric_id(id=id, session=session)
     if user_db is None:
         return None
-    user = get_user_data_from_authserver_by_id(id=user_db.sub)
-    return UserDetailView.model_validate(user)
+    return get_user_data_from_authserver_by_id(id=user_db.sub)
 
 
 def check_if_user_in_db(user: AuthenticatedUserDep, session: SessionDep) -> User:

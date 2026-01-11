@@ -69,7 +69,7 @@ def get_order_by_id_endpoint(
 
 
 @admin_router.get("")
-def get_orders_endpoint(
+def get_orders_admin_endpoint(
     include_deleted: bool = False, *, session: SessionDep, _: AuthorizedAdminDep
 ) -> list[OrderPublic]:
     return get_orders(include_deleted=include_deleted, session=session)
