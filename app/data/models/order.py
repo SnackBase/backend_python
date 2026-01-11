@@ -33,14 +33,21 @@ class OrderItemCreate(OrderItemBase):
 
 class OrderPublic(OrderBase):
     id: int
-    user: UserDetailView
     created_at: datetime
-    items: list["OrderItemPublic"] = Field(min_items=1)
+    deleted_at: datetime | None = None
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def total_per_order(self) -> float:
         return sum(item.total_per_order_item for item in self.items)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def is_deleted(self) -> bool:
+        return self.deleted_at is not None
+
+    user: UserDetailView
+    items: list["OrderItemPublic"] = Field(min_items=1)
 
 
 class OrderItemPublic(OrderItemBase, ProductPublic):

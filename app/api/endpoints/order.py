@@ -7,6 +7,7 @@ from app.auth.service import AuthorizedAdminDep
 from app.data.connector import SessionDep
 from app.data.controller.order import (
     create_order,
+    delete_order_by_id,
     get_orders,
     get_user_orders,
     get_order_by_id,
@@ -86,11 +87,21 @@ def get_order_by_id_admin_endpoint(
     return _get_order_by_id(id=id, user=None, session=session, admin_access=True)
 
 
-@admin_router.delete("/{id}")
+@admin_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_order_by_id_admin_endpoint(
-    id: DBID,
+    id: DBID, *, _: AuthorizedAdminDep, session: SessionDep
 ) -> None:
-    pass
+    try:
+        delete_order_by_id(id=id, session=session)
+    except KeyError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No order found with given id {id}",
+        )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_304_NOT_MODIFIED, detail="Order already deleted"
+        )
 
 
 router.include_router(admin_router)

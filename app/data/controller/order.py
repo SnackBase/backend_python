@@ -1,9 +1,10 @@
 from sqlmodel import Session
 from app.data.access.order import (
     create_order_data,
+    delete_order_data,
     get_orders_data,
     get_user_orders_data,
-    get_order_by_id_data,
+    get_order_data_by_id,
 )
 from app.data.access.product import get_product_data_by_id
 from app.data.access.user import get_user_data_from_authserver_by_id
@@ -70,11 +71,9 @@ def get_user_orders(user: User, session: Session) -> list[OrderPublic]:
 def get_order_by_id(
     id: int, user: User | None, session: Session, admin_access: bool = False
 ) -> OrderPublic | None:
-    order = get_order_by_id_data(id=id, session=session)
+    order = get_order_data_by_id(id=id, session=session)
     if order is None:
         return None
-    print(not admin_access)
-    print((user is not None and user.orders is not None and order not in user.orders))
     if not admin_access and (
         user is not None and user.orders is not None and order not in user.orders
     ):
@@ -82,4 +81,11 @@ def get_order_by_id(
     return convert_order_to_public(order=order)
 
 
-# TODO: add endpoint to delete order (as admin at least, maybe as user with admin confirmation)
+def delete_order_by_id(id: int, session: Session) -> OrderPublic:
+    order = get_order_data_by_id(id=id, session=session)
+    if order is None:
+        raise KeyError
+    if order.deleted_at is not None:
+        raise ValueError
+    order = delete_order_data(order=order, session=session)
+    return convert_order_to_public(order=order)
