@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, HTTPException, Path, status
+from fastapi import APIRouter, HTTPException, Path, Query, status
 from sqlmodel import Session
 
 from app.api.interface.tags import Tags
@@ -75,7 +75,10 @@ def get_order_by_id_endpoint(
 
 @admin_router.get("")
 def get_orders_admin_endpoint(
-    include_deleted: bool = False, *, session: SessionDep, _: AuthorizedAdminDep
+    include_deleted: Annotated[bool, Query(alias="include-deleted")] = False,
+    *,
+    session: SessionDep,
+    _: AuthorizedAdminDep,
 ) -> list[OrderPublic]:
     return get_orders(include_deleted=include_deleted, session=session)
 

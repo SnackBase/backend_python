@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from sqlmodel import Session, select
+from sqlmodel import Session, select, desc
 from app.data.models.order import Order
 from app.data.models.user import User
 
@@ -12,7 +12,7 @@ def create_order_data(order: Order, session: Session) -> Order:
 
 
 def get_orders_data(include_deleted: bool = False, *, session: Session) -> list[Order]:
-    statement = select(Order)
+    statement = select(Order).order_by(desc(Order.created_at))
     if not include_deleted:
         statement = statement.where(Order.deleted_at == None)  # noqa: E711  # noqa necessary for the condition handling via sqlmodel
     return list(session.exec(statement=statement).all())
