@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, status
+from typing import Annotated
+from fastapi import APIRouter, HTTPException, Path, status
 from sqlmodel import Session
 
 from app.api.interface.tags import Tags
@@ -20,6 +21,9 @@ def _order_not_found_exception(id: int) -> HTTPException:
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"No order found with given id {id}",
     )
+
+
+DBID = Annotated[int, Path(gt=0)]
 
 
 router = APIRouter(tags=[Tags.ORDERS])
@@ -48,7 +52,7 @@ def get_user_orders_endpoint(user: UserDBDep, session: SessionDep) -> list[Order
 
 
 def _get_order_by_id(
-    id: int, user: User | None, session: Session, admin_access: bool = False
+    id: DBID, user: User | None, session: Session, admin_access: bool = False
 ) -> OrderPublic:
     try:
         order = get_order_by_id(
@@ -63,7 +67,7 @@ def _get_order_by_id(
 
 @consumer_router.get("/{id}")
 def get_order_by_id_endpoint(
-    id: int, *, user: UserDBDep, session: SessionDep
+    id: DBID, *, user: UserDBDep, session: SessionDep
 ) -> OrderPublic:
     return _get_order_by_id(id=id, user=user, session=session, admin_access=False)
 
@@ -77,14 +81,14 @@ def get_orders_admin_endpoint(
 
 @admin_router.get("/{id}")
 def get_order_by_id_admin_endpoint(
-    id: int, *, _: AuthorizedAdminDep, session: SessionDep
+    id: DBID, *, _: AuthorizedAdminDep, session: SessionDep
 ) -> OrderPublic:
     return _get_order_by_id(id=id, user=None, session=session, admin_access=True)
 
 
 @admin_router.delete("/{id}")
 def delete_order_by_id_admin_endpoint(
-    id: int,
+    id: DBID,
 ) -> None:
     pass
 

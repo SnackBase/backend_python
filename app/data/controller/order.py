@@ -73,11 +73,10 @@ def get_order_by_id(
     order = get_order_by_id_data(id=id, session=session)
     if order is None:
         return None
-    if not (user is None and admin_access) or (
-        user is not None
-        and not admin_access
-        and user.orders is not None
-        and order not in user.orders
+    print(not admin_access)
+    print((user is not None and user.orders is not None and order not in user.orders))
+    if not admin_access and (
+        user is not None and user.orders is not None and order not in user.orders
     ):
         raise KeyError
     return convert_order_to_public(order=order)
