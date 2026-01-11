@@ -1,0 +1,20 @@
+repos:
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.9.23
+    hooks:
+      - id: uv-sync
+      - id: uv-lock
+  - repo: local
+    hooks:
+      - id: linting
+        name: linting
+        entry: uv run ruff check
+        language: system
+        types: [python]
+      - id: types-check
+        name: types-check
+        entry: uv run mypy --explicit-package-bases ./app/
+        language: system
+        types: [python]
+        pass_filenames: false
