@@ -5,6 +5,7 @@ from sqlmodel import Field, Relationship, SQLModel
 
 
 from app.data.models.config import model_config
+from app.data.models.product import ProductPublic
 
 
 if TYPE_CHECKING:
@@ -13,7 +14,6 @@ if TYPE_CHECKING:
 
 
 class OrderItemBase(SQLModel):
-    product_id: int
     count: int = Field(gt=0)
     model_config = model_config  # type: ignore[assignment]
 
@@ -27,7 +27,7 @@ class OrderCreate(OrderBase):
 
 
 class OrderItemCreate(OrderItemBase):
-    pass
+    product_id: int
 
 
 class OrderPublic(OrderBase):
@@ -43,12 +43,12 @@ class OrderPublic(OrderBase):
 
 
 class OrderItemPublic(OrderItemBase):
-    price_per_item: float = Field()
+    product: ProductPublic
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def total_per_order_item(self) -> float:
-        return self.price_per_item * self.count
+        return self.product.price * self.count
 
 
 class Order(OrderBase, table=True):

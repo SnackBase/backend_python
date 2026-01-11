@@ -108,7 +108,9 @@ def get_product_by_id(
     )
 
 
-def get_public_product_by_id(id: int, session: Session) -> ProductPublic | None:
+def get_public_product_by_id(
+    id: int, include_deleted: bool = False, *, session: Session
+) -> ProductPublic | None:
     """
     Retrieve a product as public API model by ID.
 
@@ -124,7 +126,7 @@ def get_public_product_by_id(id: int, session: Session) -> ProductPublic | None:
     ProductPublic | None
         Product with computed image URL or None if not found
     """
-    product = get_product_by_id(id=id, session=session)
+    product = get_product_by_id(id=id, include_deleted=include_deleted, session=session)
     if product is None:
         return None
     return ProductPublic.model_validate(product)

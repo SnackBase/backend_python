@@ -40,14 +40,7 @@ def create_order(order: OrderCreate, user: User, session: Session) -> OrderPubli
 
 
 def convert_order_to_public(order: Order) -> OrderPublic:
-    public_items = [
-        OrderItemPublic(
-            product_id=item.product_id,
-            count=item.count,
-            price_per_item=item.product.price,
-        )
-        for item in order.items
-    ]
+    public_items = [OrderItemPublic.model_validate(item) for item in order.items]
     return OrderPublic(**(order.model_dump() | {"items": public_items}))
 
 
@@ -58,7 +51,7 @@ def get_orders(include_deleted: bool = False, *, session: Session) -> list[Order
     ]
 
 
-def get_user_orders(user: User) -> list[OrderPublic]:
+def get_user_orders(user: User, session: Session) -> list[OrderPublic]:
     orders = get_user_orders_data(user=user)
     if orders is None:
         return []
@@ -71,7 +64,7 @@ def get_order_by_id(
     order = get_order_by_id_data(id=id, session=session)
     if order is None:
         return None
-    if not admin_access and order not in user.orders:
+    if user.orders is not None and not admin_access and order not in user.orders:
         raise KeyError
     return convert_order_to_public(order=order)
 

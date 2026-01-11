@@ -39,8 +39,8 @@ def create_new_order_endpoint(
 
 
 @consumer_router.get("")
-def get_user_orders_endpoint(user: UserDBDep) -> list[OrderPublic]:
-    return get_user_orders(user=user)
+def get_user_orders_endpoint(user: UserDBDep, session: SessionDep) -> list[OrderPublic]:
+    return get_user_orders(user=user, session=session)
 
 
 def _get_order_by_id(
