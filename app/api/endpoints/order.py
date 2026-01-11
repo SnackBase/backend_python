@@ -48,7 +48,7 @@ def get_user_orders_endpoint(user: UserDBDep, session: SessionDep) -> list[Order
 
 
 def _get_order_by_id(
-    id: int, user: User, session: Session, admin_access: bool = False
+    id: int, user: User | None, session: Session, admin_access: bool = False
 ) -> OrderPublic:
     try:
         order = get_order_by_id(
@@ -77,9 +77,16 @@ def get_orders_admin_endpoint(
 
 @admin_router.get("/{id}")
 def get_order_by_id_admin_endpoint(
-    id: int, *, user: UserDBDep, _: AuthorizedAdminDep, session: SessionDep
+    id: int, *, _: AuthorizedAdminDep, session: SessionDep
 ) -> OrderPublic:
-    return _get_order_by_id(id=id, user=user, session=session, admin_access=True)
+    return _get_order_by_id(id=id, user=None, session=session, admin_access=True)
+
+
+@admin_router.delete("/{id}")
+def delete_order_by_id_admin_endpoint(
+    id: int,
+) -> None:
+    pass
 
 
 router.include_router(admin_router)

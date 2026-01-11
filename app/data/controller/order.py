@@ -68,12 +68,17 @@ def get_user_orders(user: User, session: Session) -> list[OrderPublic]:
 
 
 def get_order_by_id(
-    id: int, user: User, session: Session, admin_access: bool = False
+    id: int, user: User | None, session: Session, admin_access: bool = False
 ) -> OrderPublic | None:
     order = get_order_by_id_data(id=id, session=session)
     if order is None:
         return None
-    if user.orders is not None and not admin_access and order not in user.orders:
+    if not (user is None and admin_access) or (
+        user is not None
+        and not admin_access
+        and user.orders is not None
+        and order not in user.orders
+    ):
         raise KeyError
     return convert_order_to_public(order=order)
 
