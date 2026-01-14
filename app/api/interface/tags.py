@@ -7,3 +7,5 @@ class Tags(Enum):
     CONSUMERS = "Consumers"
     ORDERS = "Orders"
     ADMIN = "Admin"
+    PAYMENTS = "Payments"
+    BALANCE = "Balance"

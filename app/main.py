@@ -9,6 +9,8 @@ from app.settings import get_settings
 from app.api.endpoints.product import router as product_router
 from app.api.endpoints.user import router as user_router
 from app.api.endpoints.order import router as order_router
+from app.api.endpoints.payment import router as payment_router
+from app.api.endpoints.balance import router as balance_router
 
 settings = get_settings()
 
@@ -50,3 +52,5 @@ app.add_middleware(
 app.include_router(product_router)
 app.include_router(user_router)
 app.include_router(order_router)
+app.include_router(payment_router)
+app.include_router(balance_router)
