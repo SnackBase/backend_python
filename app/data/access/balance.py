@@ -17,7 +17,11 @@ def get_expenses_by_user_data(user: User, session: Session) -> float:
     return sum(c * p for c, p in result)
 
 
-def get_payments_by_user_data(user: User, session: Session) -> float:
+def get_payments_by_user_data(
+    user: User, session: Session, include_pending: bool = False
+) -> float:
     assert user.id is not None
     statement = select(func.sum(Payment.amount)).where(Payment.user_id == user.id)
+    if not include_pending:
+        statement = statement.where(Payment.processed_at != None)  # noqa: E711
     return session.exec(statement=statement).one()

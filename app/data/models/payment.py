@@ -3,6 +3,7 @@ from sqlmodel import Field, Relationship, SQLModel
 
 from app.auth.models.user import UserPublic
 from app.data.models.user import User
+from app.data.models.config import model_config
 
 
 class PaymentUpdate(SQLModel):
@@ -22,6 +23,7 @@ class PaymentPublic(SQLModel):
     note: str | None
 
     user: UserPublic
+    model_config = model_config  # type: ignore[assignment]
 
 
 class Payment(SQLModel, table=True):
