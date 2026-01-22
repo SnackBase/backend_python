@@ -70,7 +70,7 @@ class Order(OrderBase, table=True):
 
 class OrderItem(OrderItemBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    order_id: int = Field(foreign_key="order.id")
+    order_id: int | None = Field(foreign_key="order.id")
     product_id: int = Field(foreign_key="product.id")
 
     # relationships

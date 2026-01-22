@@ -1,10 +1,11 @@
 from sqlmodel import Session
+
 from app.data.access.order import (
     create_order_data,
     delete_order_data,
+    get_order_data_by_id,
     get_orders_data,
     get_user_orders_data,
-    get_order_data_by_id,
 )
 from app.data.access.product import get_product_data_by_id
 from app.data.access.user import get_user_data_from_authserver_by_id
@@ -17,11 +18,13 @@ from app.data.models.order import (
 )
 from app.data.models.product import Product
 from app.data.models.user import User
+from app.data.controller.balance import get_balance_by_user
 
 
 def create_order(order: OrderCreate, user: User, session: Session) -> OrderPublic:
     # retrieve products per order item from the database
     products: list[Product] = []
+    total = 0.0
     for item in order.items:
         product = get_product_data_by_id(id=item.product_id, session=session)
         if product is None:
@@ -31,12 +34,22 @@ def create_order(order: OrderCreate, user: User, session: Session) -> OrderPubli
             msg = "Order declined due to age restriction"
             raise ValueError(msg)
         products.append(product)
+        total += product.price * item.count
     # strict in zip may lead to a ValueError, that should be handled in the endpoints
     order_items: list[OrderItem] = []
     for product, item in zip(products, order.items, strict=True):
         assert product.id is not None
-        order_items.append(OrderItem(id=None, product_id=product.id, count=item.count))
+        order_items.append(
+            OrderItem(id=None, order_id=None, product_id=product.id, count=item.count)
+        )
+    assert user.id is not None
     order_db = Order(id=None, user_id=user.id, items=order_items)
+    # check if balance of the user account is sufficient
+    current_balance = get_balance_by_user(user=user, session=session)
+    if (current_balance - total) < user.allowed_overdraw:
+        raise ValueError(
+            "Insufficient funds. Make a deposit/payment first to cover your spendings."
+        )
     order_db = create_order_data(order=order_db, session=session)
     return convert_order_to_public(order=order_db)
 

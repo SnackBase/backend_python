@@ -22,6 +22,11 @@ class User(SQLModel, table=True):
         default=False,
         description="True to restrict the user from buying items for them a certain age is required",
     )
+    allowed_overdraw: float = Field(
+        default=30,
+        ge=0,
+        description="Maximum amount/hard limit the user is allowed to overspent on orders before any further order are blocked until the account balance is above this threshold. Users are able to perform deposits/paymentss to resolve this.",
+    )
 
     # relationships
     orders: list["Order"] | None = Relationship(back_populates="user")
