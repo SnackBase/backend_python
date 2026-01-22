@@ -16,9 +16,9 @@ from app.data.models.payment import PaymentCreate, PaymentPublic, PaymentUpdate
 
 
 router = APIRouter(tags=[Tags.PAYMENTS])
-consumer_router = APIRouter(prefix=f"/{Tags.PAYMENTS.value.lower()}")
+consumer_router = APIRouter(prefix=f"/{Tags.PAYMENTS}")
 admin_router = APIRouter(
-    prefix=f"/{Tags.ADMIN.value.lower()}/{Tags.PAYMENTS.value.lower()}",
+    prefix=f"/{Tags.ADMIN}/{Tags.PAYMENTS}",
     tags=[Tags.ADMIN],
 )
 

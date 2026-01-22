@@ -6,7 +6,7 @@ from app.data.controller.balance import get_balance_by_user
 from app.data.controller.user import UserDBDep
 
 
-router = APIRouter(tags=[Tags.BALANCE], prefix=f"/{Tags.BALANCE.value.lower()}")
+router = APIRouter(tags=[Tags.BALANCE], prefix=f"/{Tags.BALANCE}")
 
 
 @router.get("")

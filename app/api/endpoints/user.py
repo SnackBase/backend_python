@@ -14,10 +14,8 @@ from app.data.models.user import UserDetailView
 
 
 router = APIRouter(tags=[Tags.USERS])
-general_router = APIRouter(prefix=f"/{Tags.USERS.value.lower()}")
-admin_router = APIRouter(
-    prefix=f"/{Tags.ADMIN.value.lower()}/{Tags.USERS.value.lower()}", tags=[Tags.ADMIN]
-)
+general_router = APIRouter(prefix=f"/{Tags.USERS}")
+admin_router = APIRouter(prefix=f"/{Tags.ADMIN}/{Tags.USERS}", tags=[Tags.ADMIN])
 
 
 @general_router.get("")

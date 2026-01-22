@@ -1,11 +1,13 @@
-from enum import Enum
+from enum import StrEnum, auto
 
 
-class Tags(Enum):
-    PRODUCTS = "Products"
-    USERS = "Users"
-    CONSUMERS = "Consumers"
-    ORDERS = "Orders"
-    ADMIN = "Admin"
-    PAYMENTS = "Payments"
-    BALANCE = "Balance"
+class Tags(StrEnum):
+    PRODUCTS = auto()
+    USERS = auto()
+    CONSUMERS = auto()
+    ORDERS = auto()
+    ADMIN = auto()
+    PAYMENTS = auto()
+    BALANCE = auto()
+    CONFIG = auto()
+    CURRENCY = auto()

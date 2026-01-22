@@ -28,12 +28,8 @@ DBID = Annotated[int, Path(gt=0)]
 
 
 router = APIRouter(tags=[Tags.ORDERS])
-consumer_router = APIRouter(
-    prefix=f"/{Tags.ORDERS.value.lower()}", tags=[Tags.CONSUMERS]
-)
-admin_router = APIRouter(
-    prefix=f"/{Tags.ADMIN.value.lower()}/{Tags.ORDERS.value.lower()}", tags=[Tags.ADMIN]
-)
+consumer_router = APIRouter(prefix=f"/{Tags.ORDERS}", tags=[Tags.CONSUMERS])
+admin_router = APIRouter(prefix=f"/{Tags.ADMIN}/{Tags.ORDERS}", tags=[Tags.ADMIN])
 
 
 @consumer_router.post("")

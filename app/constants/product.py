@@ -2,7 +2,7 @@ from app.api.interface.tags import Tags
 
 
 IMAGE_SIZE = 5 * 1024**2
-ENDPOINT_PREFIX = f"/{Tags.PRODUCTS.value.lower()}"
+ENDPOINT_PREFIX = f"/{Tags.PRODUCTS.value}"
 IMAGE_ROUTE = "image"
 
 # Allowed image MIME types for upload validation
