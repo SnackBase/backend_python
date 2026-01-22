@@ -9,9 +9,9 @@ from app.data.access.user import (
     get_user_from_db_by_numeric_id,
     get_users_data,
 )
-from app.auth.models.user import UserWithEmail, UserPublic
+from app.auth.models.user import UserFull, UserPublic, UserWithEmail
 from app.data.connector import SessionDep
-from app.data.models.user import User
+from app.data.models.user import User, UserDetailView
 
 
 def get_users() -> list[UserPublic]:
@@ -19,11 +19,35 @@ def get_users() -> list[UserPublic]:
     return [UserPublic.model_validate(u) for u in users]
 
 
-def get_user_details_by_id(id: int, session: Session) -> UserWithEmail | None:
+def convert_auth_server_user_to_detail_view(
+    user_auth_server: UserFull | UserWithEmail, user_db: User
+) -> UserDetailView:
+    return UserDetailView(**(user_db.model_dump() | user_auth_server.model_dump()))
+
+
+def get_users_detail_view(session: Session) -> list[UserDetailView]:
+    users_auth_server = get_users_data()
+    users: list[UserDetailView] = []
+    for user_auth_server in users_auth_server:
+        user_db = check_if_user_in_db(user=user_auth_server, session=session)
+        if user_auth_server is None:
+            continue
+        users.append(
+            convert_auth_server_user_to_detail_view(
+                user_auth_server=user_auth_server, user_db=user_db
+            )
+        )
+    return users
+
+
+def get_user_details_by_id(id: int, session: Session) -> UserDetailView | None:
     user_db = get_user_from_db_by_numeric_id(id=id, session=session)
     if user_db is None:
         return None
-    return get_user_data_from_authserver_by_id(id=user_db.sub)
+    user_auth_server = get_user_data_from_authserver_by_id(id=user_db.sub)
+    return convert_auth_server_user_to_detail_view(
+        user_auth_server=user_auth_server, user_db=user_db
+    )
 
 
 def check_if_user_in_db(user: AuthenticatedUserDep, session: SessionDep) -> User:
@@ -42,3 +66,10 @@ def check_if_user_in_db(user: AuthenticatedUserDep, session: SessionDep) -> User
 
 
 UserDBDep = Annotated[User, Depends(check_if_user_in_db)]
+
+
+def get_me(user_auth_server: UserFull, session: Session) -> UserDetailView:
+    user_db = check_if_user_in_db(user=user_auth_server, session=session)
+    return convert_auth_server_user_to_detail_view(
+        user_auth_server=user_auth_server, user_db=user_db
+    )
