@@ -4,7 +4,7 @@ from sqlmodel import Session
 from app.auth.service import AuthenticatedUserDep
 from app.data.access.user import (
     add_user_to_db,
-    get_user_data_from_authserver_by_id,
+    get_user_data_from_authserver_by_sub,
     get_user_from_db_by_sub,
     get_user_from_db_by_numeric_id,
     get_users_data,
@@ -44,7 +44,7 @@ def get_user_details_by_id(id: int, session: Session) -> UserDetailView | None:
     user_db = get_user_from_db_by_numeric_id(id=id, session=session)
     if user_db is None:
         return None
-    user_auth_server = get_user_data_from_authserver_by_id(id=user_db.sub)
+    user_auth_server = get_user_data_from_authserver_by_sub(sub=user_db.sub)
     return convert_auth_server_user_to_detail_view(
         user_auth_server=user_auth_server, user_db=user_db
     )

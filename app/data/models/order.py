@@ -4,7 +4,7 @@ from pydantic import computed_field
 from sqlmodel import Field, Relationship, SQLModel
 
 
-from app.auth.models.user import UserWithEmail
+from app.auth.models.user import UserPublic
 from app.data.models.config import model_config
 from app.data.models.product import ProductPublic
 
@@ -46,7 +46,7 @@ class OrderPublic(OrderBase):
     def is_deleted(self) -> bool:
         return self.deleted_at is not None
 
-    user: UserWithEmail
+    user: UserPublic
     items: list["OrderItemPublic"] = Field(min_items=1)
 
 

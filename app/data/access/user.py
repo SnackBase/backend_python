@@ -23,8 +23,8 @@ def get_users_data() -> list[UserFull]:
     return [UserFull(**u) for u in users]
 
 
-def get_user_data_from_authserver_by_id(id: uuid.UUID) -> UserWithEmail:
-    user = keycloak_admin.get_user(user_id=str(id))
+def get_user_data_from_authserver_by_sub(sub: uuid.UUID) -> UserWithEmail:
+    user = keycloak_admin.get_user(user_id=str(sub))
     return UserWithEmail(**user)
 
 

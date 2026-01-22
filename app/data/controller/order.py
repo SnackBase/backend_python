@@ -8,7 +8,7 @@ from app.data.access.order import (
     get_user_orders_data,
 )
 from app.data.access.product import get_product_data_by_id
-from app.data.access.user import get_user_data_from_authserver_by_id
+from app.data.access.user import get_user_data_from_authserver_by_sub
 from app.data.models.order import (
     Order,
     OrderCreate,
@@ -55,7 +55,7 @@ def create_order(order: OrderCreate, user: User, session: Session) -> OrderPubli
 
 
 def convert_order_to_public(order: Order) -> OrderPublic:
-    user = get_user_data_from_authserver_by_id(id=order.user.sub)
+    user = get_user_data_from_authserver_by_sub(sub=order.user.sub)
     public_items = [
         OrderItemPublic(**(item.model_dump() | item.product.model_dump()))
         for item in order.items

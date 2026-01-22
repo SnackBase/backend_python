@@ -6,7 +6,7 @@ from app.data.access.payment import (
     upsert_payment_data,
     get_all_payments_admin_data,
 )
-from app.data.access.user import get_user_data_from_authserver_by_id
+from app.data.access.user import get_user_data_from_authserver_by_sub
 from app.data.models.payment import Payment, PaymentCreate, PaymentPublic
 from app.data.models.user import User
 
@@ -16,13 +16,13 @@ def convert_to_public(payment: Payment, user: UserPublic) -> PaymentPublic:
 
 
 def convert_one_to_public(payment: Payment) -> PaymentPublic:
-    public_user = get_user_data_from_authserver_by_id(id=payment.user.sub)
+    public_user = get_user_data_from_authserver_by_sub(sub=payment.user.sub)
     return convert_to_public(payment=payment, user=public_user)
 
 
 def convert_many_to_public(payments: list[Payment]):
     user_set = set(x.user.sub for x in payments)
-    user_dict = {sub: get_user_data_from_authserver_by_id(id=sub) for sub in user_set}
+    user_dict = {sub: get_user_data_from_authserver_by_sub(sub=sub) for sub in user_set}
     return [convert_to_public(payment=p, user=user_dict[p.user.sub]) for p in payments]
 
 
