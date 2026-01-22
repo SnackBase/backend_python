@@ -10,7 +10,7 @@ from fastapi import UploadFile
 from app.constants.product import IMAGE_ROUTE, ENDPOINT_PREFIX
 from app.data.enums.product import ProductTypes
 from app.settings import get_settings
-from app.data.models.config import model_config
+from app.data.models.serialization import model_config
 
 if TYPE_CHECKING:
     from app.data.models.order import OrderItem

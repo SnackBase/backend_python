@@ -5,7 +5,7 @@ from sqlmodel import Field, Relationship, SQLModel
 
 
 from app.auth.models.user import UserPublic
-from app.data.models.config import model_config
+from app.data.models.serialization import model_config
 from app.data.models.product import ProductPublic
 
 
