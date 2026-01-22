@@ -32,12 +32,12 @@ class UserPublic(BaseModel):
     )
 
 
-class UserDetailView(UserPublic):
+class UserWithEmail(UserPublic):
     email: EmailStr
     email_verified: bool = Field(alias="emailVerified")
 
 
-class UserFull(UserDetailView):
+class UserFull(UserWithEmail):
     """
     Complete user model with authentication and authorization data.
 

@@ -4,7 +4,7 @@ from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 
 
 from app.auth.service import keycloak_admin
-from app.auth.models.user import UserDetailView, UserFull
+from app.auth.models.user import UserWithEmail, UserFull
 from app.data.models.user import User
 
 
@@ -23,22 +23,22 @@ def get_users_data() -> list[UserFull]:
     return [UserFull(**u) for u in users]
 
 
-def get_user_data_from_authserver_by_id(id: uuid.UUID) -> UserDetailView:
+def get_user_data_from_authserver_by_id(id: uuid.UUID) -> UserWithEmail:
     user = keycloak_admin.get_user(user_id=str(id))
-    return UserDetailView(**user)
+    return UserWithEmail(**user)
 
 
 def get_user_from_db_by_numeric_id(id: int, session: Session) -> User | None:
     return session.get(User, id)
 
 
-def get_user_from_db(user: UserFull, session: Session) -> User | None:
-    statement = select(User).where(User.sub == user.sub)
+def get_user_from_db_by_sub(user_sub: str, session: Session) -> User | None:
+    statement = select(User).where(User.sub == user_sub)
     try:
         return session.exec(statement).one()
     except MultipleResultsFound as e:
         raise ValueError(
-            f"Multiple users found in database with sub: {user.sub} - Error: {e}"
+            f"Multiple users found in database with sub: {user_sub} - Error: {e}"
         )
     except NoResultFound:
         # raise ValueError(f"No user found in database with sub: {user.sub} - Error: {e}")

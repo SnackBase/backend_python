@@ -5,11 +5,11 @@ from app.auth.service import AuthenticatedUserDep
 from app.data.access.user import (
     add_user_to_db,
     get_user_data_from_authserver_by_id,
-    get_user_from_db,
+    get_user_from_db_by_sub,
     get_user_from_db_by_numeric_id,
     get_users_data,
 )
-from app.auth.models.user import UserDetailView, UserPublic
+from app.auth.models.user import UserWithEmail, UserPublic
 from app.data.connector import SessionDep
 from app.data.models.user import User
 
@@ -19,7 +19,7 @@ def get_users() -> list[UserPublic]:
     return [UserPublic.model_validate(u) for u in users]
 
 
-def get_user_from_authserver_by_id(id: int, session: Session) -> UserDetailView | None:
+def get_user_details_by_id(id: int, session: Session) -> UserWithEmail | None:
     user_db = get_user_from_db_by_numeric_id(id=id, session=session)
     if user_db is None:
         return None
@@ -28,7 +28,7 @@ def get_user_from_authserver_by_id(id: int, session: Session) -> UserDetailView 
 
 def check_if_user_in_db(user: AuthenticatedUserDep, session: SessionDep) -> User:
     try:
-        user_db = get_user_from_db(user=user, session=session)
+        user_db = get_user_from_db_by_sub(user_sub=user.sub, session=session)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
