@@ -46,7 +46,8 @@ def create_order(order: OrderCreate, user: User, session: Session) -> OrderPubli
     order_db = Order(id=None, user_id=user.id, items=order_items)
     # check if balance of the user account is sufficient
     current_balance = get_balance_by_user(user=user, session=session)
-    if (current_balance - total) < user.allowed_overdraw:
+    print(current_balance, total, user.allowed_overdraw)
+    if current_balance - total + user.allowed_overdraw < 0:
         raise ValueError(
             "Insufficient funds. Make a deposit/payment first to cover your spendings."
         )
