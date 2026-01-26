@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 import uuid
 from sqlmodel import Relationship, SQLModel, Field
 from pydantic import computed_field
-from pydantic_extra_types.currency_code import Currency
 from fastapi import UploadFile
 
 from app.constants.product import IMAGE_ROUTE, ENDPOINT_PREFIX
@@ -38,7 +37,6 @@ class ProductBase(SQLModel):
     name: str
     price: float = Field(ge=0)
     type: ProductTypes
-    currency: Currency = Field(default=Currency("EUR"))
 
     model_config = model_config  # type: ignore[assignment]
 

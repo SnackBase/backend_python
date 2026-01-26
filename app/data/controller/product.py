@@ -51,7 +51,6 @@ async def create_product(product: ProductCreate, session: Session) -> ProductPub
         name=product.name,
         price=product.price,
         type=product.type,
-        currency=product.currency,
         image_id=image_id,
         age_restrict=product.age_restrict,
     )
@@ -170,7 +169,6 @@ def update_product_price(
         name=product_old.name,
         price=price,
         type=product_old.type,
-        currency=product_old.currency,
         image_id=product_old.image_id,
         age_restrict=product_old.age_restrict,
         persistent_id=product_old.persistent_id,

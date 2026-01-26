@@ -24,4 +24,7 @@ def get_payments_by_user_data(
     statement = select(func.sum(Payment.amount)).where(Payment.user_id == user.id)
     if not include_pending:
         statement = statement.where(Payment.processed_at != None)  # noqa: E711
-    return session.exec(statement=statement).one()
+    result = session.exec(statement=statement).one()
+    if result is None:
+        return 0.0
+    return result
